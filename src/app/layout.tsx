@@ -11,7 +11,6 @@ import { Toaster } from "@/components/ui/sonner";
 export const metadata: Metadata = {
   title: "CRM System",
   description: "Sistema completo de CRM para gestão de relacionamento com clientes",
-  generator: "v0.app",
 };
 
 export default function RootLayout({
