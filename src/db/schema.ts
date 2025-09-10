@@ -58,10 +58,10 @@ export const verificationsTable = pgTable("verifications", {
 export const usersToCompanyTable = pgTable("users_to_company", {
   userId: text("user_id")
     .notNull()
-    .references(() => usersTable.id),
+    .references(() => usersTable.id, { onDelete: "cascade" }),
   companyId: uuid("company_id")
     .notNull()
-    .references(() => companyTable.id),
+    .references(() => companyTable.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
