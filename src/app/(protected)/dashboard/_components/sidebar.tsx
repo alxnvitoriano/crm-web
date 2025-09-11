@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/src/lib/utils";
 import { Button } from "@/src/components/ui/button";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
@@ -31,8 +31,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SidebarFooter, SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
+import {
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
+import { Avatar } from "@/components/ui/avatar";
+import { AvatarFallback } from "@radix-ui/react-avatar";
 
 const sidebarItems = [
   {
@@ -61,7 +68,7 @@ const sidebarItems = [
     icon: TrendingUp,
   },
   {
-    title: "Levantamento de Necessidade",
+    title: "Lev. de Necessidade",
     href: "/dashboard/needs-assessment",
     icon: Users,
   },
@@ -114,15 +121,25 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+
+  const router = useRouter();
+  const session = authClient.useSession();
+
   const handleSignOut = async () => {
-    await authClient.signOut();
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/authentication");
+        },
+      },
+    });
   };
 
   return (
     <div
       className={cn(
         "relative flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
-        collapsed ? "w-16" : "w-64",
+        collapsed ? "w-16" : "w-72",
         className
       )}
     >
@@ -181,7 +198,17 @@ export function Sidebar({ className }: SidebarProps) {
             <SidebarMenuItem>
               <DropdownMenu>
                 <DropdownMenuTrigger>
-                  <Button>Empresa</Button>
+                  <SidebarMenuButton className="flex items-center gap-2">
+                    <Avatar className="h-9 w-9">
+                      <AvatarFallback className="flex items-center justify-center">
+                        A
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col justify-center text-left">
+                      <p className="text-sm">{session.data?.user.company.name}</p>
+                      <p className="text-sm text-muted-foreground">{session.data?.user.email}</p>
+                    </div>
+                  </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem onClick={handleSignOut}>
