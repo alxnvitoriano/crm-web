@@ -29,10 +29,12 @@ export const auth = betterAuth({
       return {
         user: {
           ...user,
-          company: {
-            id: company.companyId,
-            name: company.company.name,
-          },
+          company: company
+            ? {
+                id: company.companyId,
+                name: company.company.name,
+              }
+            : null,
         },
         session,
       };

@@ -205,8 +205,12 @@ export function Sidebar({ className }: SidebarProps) {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col justify-center text-left">
-                      <p className="text-sm">{session.data?.user.company.name}</p>
-                      <p className="text-sm text-muted-foreground">{session.data?.user.email}</p>
+                      <p className="text-sm">
+                        {session.data?.user.company
+                          ? session.data.user.company.name
+                          : "Sem Empresa"}
+                        <p className="text-sm text-muted-foreground">{session.data?.user.email}</p>
+                      </p>
                     </div>
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
