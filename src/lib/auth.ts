@@ -26,6 +26,12 @@ export const auth = betterAuth({
         },
       });
       const company = companys[0];
+
+      const roleRecord = await db.query.usersToCompanyTable.findFirst({
+        where: eq(schema.usersToCompanyTable.userId, user.id),
+        with: { role: true },
+      });
+
       return {
         user: {
           ...user,
@@ -33,6 +39,7 @@ export const auth = betterAuth({
             id: company.companyId,
             name: company.company.name,
           },
+          role: roleRecord?.role.name,
         },
         session,
       };

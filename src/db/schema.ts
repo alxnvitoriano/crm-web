@@ -7,6 +7,9 @@ export const usersTable = pgTable("users", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull(),
   image: text("image"),
+  roleId: text("role_id")
+    .notNull()
+    .references(() => rolesTable.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
 });
@@ -173,3 +176,45 @@ export const usersToCompanyTableRelations = relations(usersToCompanyTable, ({ on
     references: [companyTable.id],
   }),
 }));
+
+export const rolesTable = pgTable("roles", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+});
+
+export const stagesTable = pgTable("stages", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  order: text("order").notNull(),
+});
+
+export const roleStagePermissionsTable = pgTable("role_stage_permission", {
+  roleId: text("role_id")
+    .notNull()
+    .references(() => rolesTable.id, { onDelete: "cascade" }),
+  stageId: text("stage_id")
+    .notNull()
+    .references(() => stagesTable.id, { onDelete: "cascade" }),
+  canEdit: boolean("can_edit").notNull().default(false),
+  canView: boolean("can_view").notNull().default(true),
+});
+
+export const teamTable = pgTable("teams", {
+  id: text("id").primaryKey(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companyTable.id, { onDelete: "cascade" }),
+  managerId: text("manager_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+});
+
+export const usersToTeamTable = pgTable("users_to_team", {
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  teamId: text("team_id")
+    .notNull()
+    .references(() => teamTable.id, { onDelete: "cascade" }),
+});
