@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import SignOutButton from "./components/button-sign-out";
+import SignOutButton from "./_components/button-sign-out";
 import { db } from "@/db";
 import { usersToCompanyTable } from "@/db/schema";
 import { eq } from "drizzle-orm";

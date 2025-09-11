@@ -3,13 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/src/lib/utils";
+import { Button } from "@/src/components/ui/button";
+import { ScrollArea } from "@/src/components/ui/scroll-area";
 import {
   LayoutDashboard,
   Users,
-  UserPlus,
   Headphones,
   CheckCircle,
   Handshake,
@@ -24,7 +23,16 @@ import {
   Target,
   CheckSquare,
   TrendingUp,
+  LogOut,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { SidebarFooter, SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
+import { authClient } from "@/lib/auth-client";
 
 const sidebarItems = [
   {
@@ -51,11 +59,6 @@ const sidebarItems = [
     title: "Relatórios",
     href: "/dashboard/reports",
     icon: TrendingUp,
-  },
-  {
-    title: "Leads",
-    href: "/dashboard/leads",
-    icon: UserPlus,
   },
   {
     title: "Levantamento de Necessidade",
@@ -111,6 +114,9 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const handleSignOut = async () => {
+    await authClient.signOut();
+  };
 
   return (
     <div
@@ -167,6 +173,27 @@ export function Sidebar({ className }: SidebarProps) {
           })}
         </nav>
       </ScrollArea>
+
+      {/* Footer */}
+      <div className="border-t border-sidebar-border p-3">
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Button>Empresa</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </div>
     </div>
   );
 }
