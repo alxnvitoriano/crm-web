@@ -1,12 +1,36 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { customSession } from "better-auth/plugins";
+import { customSession, organization } from "better-auth/plugins";
 import * as schema from "@/src/db/schema";
 
 import { db } from "@/src/db";
 import { eq } from "drizzle-orm";
+import { getActiveOrganization } from "server/organization";
+import {
+  ac,
+  administrative,
+  geral_manager,
+  manager_sales,
+  post_sale,
+  salesperson,
+} from "./auth/permissions";
 
 export const auth = betterAuth({
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          const organization = await getActiveOrganization(session.userId);
+          return {
+            data: {
+              ...session,
+              activeOrganizationId: organization?.id,
+            },
+          };
+        },
+      },
+    },
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,
@@ -38,6 +62,16 @@ export const auth = betterAuth({
         },
         session,
       };
+    }),
+    organization({
+      ac,
+      roles: {
+        salesperson,
+        geral_manager,
+        manager_sales,
+        administrative,
+        post_sale,
+      },
     }),
   ],
   user: {

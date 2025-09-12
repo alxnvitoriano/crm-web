@@ -1,37 +1,40 @@
 import { relations } from "drizzle-orm";
 import { boolean, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
-export const usersTable = pgTable("users", {
+export const usersTable = pgTable("users_table", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified").notNull(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
-  roleId: text("role_id")
-    .notNull()
-    .references(() => rolesTable.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
 });
 
 export const usersTableRelations = relations(usersTable, ({ many }) => ({
   userToCompanyTable: many(usersToCompanyTable),
 }));
 
-export const sessionsTable = pgTable("sessions", {
+export const sessionsTable = pgTable("sessions_table", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expires_at").notNull(),
   token: text("token").notNull().unique(),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   userId: text("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
+  activeOrganizationId: text("active_organization_id"),
 });
 
-export const accountsTable = pgTable("accounts", {
+export const accountsTable = pgTable("accounts_table", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
@@ -45,17 +48,22 @@ export const accountsTable = pgTable("accounts", {
   refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
   scope: text("scope"),
   password: text("password"),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
 });
 
-export const verificationsTable = pgTable("verifications", {
+export const verificationsTable = pgTable("verifications_table", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at"),
-  updatedAt: timestamp("updated_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
 });
 
 export const usersToCompanyTable = pgTable("users_to_company", {
@@ -177,44 +185,70 @@ export const usersToCompanyTableRelations = relations(usersToCompanyTable, ({ on
   }),
 }));
 
-export const rolesTable = pgTable("roles", {
+export const organization = pgTable("organization", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  slug: text("slug").unique(),
+  logo: text("logo"),
+  createdAt: timestamp("created_at").notNull(),
+  metadata: text("metadata"),
 });
 
-export const stagesTable = pgTable("stages", {
+export const organizationRelations = relations(organization, ({ many }) => ({
+  members: many(member),
+}));
+
+export type Organization = typeof organization.$inferSelect;
+
+export const member = pgTable("member", {
   id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  order: text("order").notNull(),
-});
-
-export const roleStagePermissionsTable = pgTable("role_stage_permission", {
-  roleId: text("role_id")
+  organizationId: text("organization_id")
     .notNull()
-    .references(() => rolesTable.id, { onDelete: "cascade" }),
-  stageId: text("stage_id")
-    .notNull()
-    .references(() => stagesTable.id, { onDelete: "cascade" }),
-  canEdit: boolean("can_edit").notNull().default(false),
-  canView: boolean("can_view").notNull().default(true),
-});
-
-export const teamTable = pgTable("teams", {
-  id: text("id").primaryKey(),
-  companyId: uuid("company_id")
-    .notNull()
-    .references(() => companyTable.id, { onDelete: "cascade" }),
-  managerId: text("manager_id")
-    .notNull()
-    .references(() => usersTable.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-});
-
-export const usersToTeamTable = pgTable("users_to_team", {
+    .references(() => organization.id, { onDelete: "cascade" }),
   userId: text("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
-  teamId: text("team_id")
-    .notNull()
-    .references(() => teamTable.id, { onDelete: "cascade" }),
+  role: text("role").default("member").notNull(),
+  createdAt: timestamp("created_at").notNull(),
 });
+
+export const memberRelations = relations(member, ({ one }) => ({
+  organization: one(organization, {
+    fields: [member.organizationId],
+    references: [organization.id],
+  }),
+  user: one(usersTable, {
+    fields: [member.userId],
+    references: [usersTable.id],
+  }),
+}));
+
+export type Member = typeof member.$inferSelect & {
+  user: typeof usersTable.$inferSelect;
+};
+
+export const invitation = pgTable("invitation", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  role: text("role"),
+  status: text("status").default("pending").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  inviterId: text("inviter_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+});
+
+export const schema = {
+  usersTable,
+  sessionsTable,
+  accountsTable,
+  verificationsTable,
+  organization,
+  member,
+  invitation,
+  organizationRelations,
+  memberRelations,
+};

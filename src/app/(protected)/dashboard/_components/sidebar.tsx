@@ -48,68 +48,73 @@ const sidebarItems = [
     icon: LayoutDashboard,
   },
   {
+    title: "Time",
+    href: "/team",
+    icon: Users,
+  },
+  {
     title: "Clientes",
-    href: "/dashboard/clients",
+    href: "/clients",
     icon: Users,
   },
   {
     title: "Negócios",
-    href: "/dashboard/deals",
+    href: "/deals",
     icon: Target,
   },
   {
     title: "Tarefas",
-    href: "/dashboard/tasks",
+    href: "/tasks",
     icon: CheckSquare,
   },
   {
     title: "Relatórios",
-    href: "/dashboard/reports",
+    href: "/reports",
     icon: TrendingUp,
   },
   {
     title: "Lev. de Necessidade",
-    href: "/dashboard/needs-assessment",
+    href: "/needs-assessment",
     icon: Users,
   },
   {
     title: "Atendimento",
-    href: "/dashboard/customer-service",
+    href: "/customer-service",
     icon: Headphones,
   },
   {
     title: "Análise/Aprovação",
-    href: "/dashboard/analysis-approval",
+    href: "/analysis-approval",
     icon: CheckCircle,
   },
   {
     title: "Fechamento",
-    href: "/dashboard/closing",
+    href: "/closing",
     icon: Handshake,
   },
   {
     title: "Confirmar Venda",
-    href: "/dashboard/sale-confirmation",
+    href: "/sale-confirmation",
     icon: ShoppingCart,
   },
   {
     title: "Controle de Qualidade",
-    href: "/dashboard/quality-control",
+    href: "/quality-control",
     icon: Shield,
   },
   {
     title: "Resultado 1º Assembleia",
-    href: "/dashboard/assembly-results",
+    href: "/assembly-results",
     icon: BarChart3,
   },
   {
     title: "Pós Venda",
-    href: "/dashboard/post-sale",
+    href: "/post-sale",
     icon: MessageSquare,
   },
   {
     title: "Configurações",
-    href: "/dashboard/settings",
+    href: "/settings",
     icon: Settings,
   },
 ];
@@ -189,42 +194,37 @@ export function Sidebar({ className }: SidebarProps) {
             );
           })}
         </nav>
+        {/* Footer */}
+        <div className="border-t border-sidebar-border p-3">
+          <SidebarFooter>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <SidebarMenuButton className="flex items-center gap-2" isActive={true}>
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="flex items-center justify-center">
+                          A
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col justify-center text-left">
+                        <p className="text-sm">{session.data?.user?.company?.name}</p>
+                        <p className="text-muted-foreground text-sm">{session.data?.user.email}</p>
+                      </div>
+                    </SidebarMenuButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut />
+                      Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </div>
       </ScrollArea>
-
-      {/* Footer */}
-      <div className="border-t border-sidebar-border p-3">
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <DropdownMenu>
-                <DropdownMenuTrigger>
-                  <SidebarMenuButton className="flex items-center gap-2">
-                    <Avatar className="h-9 w-9">
-                      <AvatarFallback className="flex items-center justify-center">
-                        A
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col justify-center text-left">
-                      <p className="text-sm">
-                        {session.data?.user.company
-                          ? session.data.user.company.name
-                          : "Sem Empresa"}
-                        <p className="text-sm text-muted-foreground">{session.data?.user.email}</p>
-                      </p>
-                    </div>
-                  </SidebarMenuButton>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut />
-                    Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      </div>
     </div>
   );
 }

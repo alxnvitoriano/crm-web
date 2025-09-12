@@ -1,15 +1,20 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import type React from "react";
+import { SidebarProvider } from "@/src/components/ui/sidebar";
+import Header from "@/components/header";
+import { Sidebar } from "./dashboard/_components/sidebar";
+import { getOrganizations } from "server/organization";
 
-import { Sidebar } from "@/src/app/(protected)/dashboard/_components/sidebar";
-
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const organizations = await getOrganizations();
   return (
-    <SidebarProvider>
-      <Sidebar />
-      <main className="w-full">
-        <SidebarTrigger />
-        {children}
-      </main>
-    </SidebarProvider>
+    <div className="flex h-screen bg-background">
+      <SidebarProvider>
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header organizations={organizations} />
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        </div>
+      </SidebarProvider>
+    </div>
   );
 }
