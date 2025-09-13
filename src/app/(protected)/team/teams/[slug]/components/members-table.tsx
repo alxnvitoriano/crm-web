@@ -14,6 +14,7 @@ import { Member } from "@/db/schema";
 import { removeMemberFromOrganization } from "server/member";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface MembersTableProps {
   members: Member[];
@@ -27,6 +28,7 @@ export default function MembersTable({
   onMemberRemoved,
 }: MembersTableProps) {
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleRemoveMember = async (userId: string) => {
     setRemovingMemberId(userId);
@@ -37,6 +39,8 @@ export default function MembersTable({
       if (result.success) {
         toast.success(result.message);
         onMemberRemoved?.();
+        // Refresh da página para mostrar as mudanças
+        router.refresh();
       } else {
         toast.error(result.error);
       }

@@ -5,14 +5,14 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { eq, and } from "drizzle-orm";
-import { member, organization, usersTable } from "@/db/schema";
-import { nanoid } from "nanoid";
+import { member, Role } from "@/db/schema";
+import { isAdmin } from "./permissions";
 
-export async function addMemberToOrganization(
+export const addMemberToOrganization = async (
   organizationId: string,
   userId: string,
-  role: string = "member"
-) {
+  role: Role
+) => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -22,50 +22,49 @@ export async function addMemberToOrganization(
   }
 
   try {
-    // Verificar se o usuário já está no time
+    // Verificar permissões do usuário
+    const permissionCheck = await isAdmin();
+    if (!permissionCheck.success) {
+      return {
+        success: false,
+        error: permissionCheck.error || "Você não tem permissão para adicionar membros",
+      };
+    }
+
+    // Verificar se o usuário já está no time usando o banco
     const existingMember = await db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, userId)),
     });
 
-    if (existingMember) {
+    const isAlreadyMember = !!existingMember;
+
+    if (isAlreadyMember) {
       return {
         success: false,
         error: "Usuário já está neste time",
       };
     }
 
-    // Verificar se a organização existe
-    const org = await db.query.organization.findFirst({
-      where: eq(organization.id, organizationId),
-    });
-
-    if (!org) {
-      return {
-        success: false,
-        error: "Organização não encontrada",
-      };
+    // Adicionar o usuário ao time usando a API
+    try {
+      await auth.api.addMember({
+        body: {
+          userId,
+          organizationId,
+          role,
+        },
+      });
+    } catch (apiError) {
+      console.warn("API addMember falhou, usando banco diretamente:", apiError);
+      // Fallback: adicionar diretamente no banco
+      await db.insert(member).values({
+        id: crypto.randomUUID(),
+        organizationId,
+        userId,
+        role,
+        createdAt: new Date(),
+      });
     }
-
-    // Verificar se o usuário existe
-    const user = await db.query.usersTable.findFirst({
-      where: eq(usersTable.id, userId),
-    });
-
-    if (!user) {
-      return {
-        success: false,
-        error: "Usuário não encontrado",
-      };
-    }
-
-    // Adicionar o usuário ao time
-    await db.insert(member).values({
-      id: nanoid(),
-      organizationId,
-      userId,
-      role,
-      createdAt: new Date(),
-    });
 
     return {
       success: true,
@@ -78,7 +77,7 @@ export async function addMemberToOrganization(
       error: "Erro interno do servidor",
     };
   }
-}
+};
 
 export async function removeMemberFromOrganization(organizationId: string, userId: string) {
   const session = await auth.api.getSession({
@@ -90,7 +89,16 @@ export async function removeMemberFromOrganization(organizationId: string, userI
   }
 
   try {
-    // Verificar se o membro existe
+    // Verificar permissões do usuário
+    const permissionCheck = await isAdmin();
+    if (!permissionCheck.success) {
+      return {
+        success: false,
+        error: permissionCheck.error || "Você não tem permissão para remover membros",
+      };
+    }
+
+    // Verificar se o membro existe usando o banco
     const existingMember = await db.query.member.findFirst({
       where: and(eq(member.organizationId, organizationId), eq(member.userId, userId)),
     });
@@ -102,10 +110,21 @@ export async function removeMemberFromOrganization(organizationId: string, userI
       };
     }
 
-    // Remover o membro do time
-    await db
-      .delete(member)
-      .where(and(eq(member.organizationId, organizationId), eq(member.userId, userId)));
+    // Remover o membro do time usando a auth API
+    try {
+      await auth.api.removeMember({
+        body: {
+          memberIdOrEmail: userId,
+          organizationId,
+        },
+      });
+    } catch (apiError) {
+      console.warn("API removeMember falhou, usando banco diretamente:", apiError);
+      // Fallback: remover diretamente no banco
+      await db
+        .delete(member)
+        .where(and(eq(member.organizationId, organizationId), eq(member.userId, userId)));
+    }
 
     return {
       success: true,
