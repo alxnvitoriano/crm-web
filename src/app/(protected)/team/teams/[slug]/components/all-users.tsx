@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { Loader2, Mail } from "lucide-react";
-import { resendInvitationEmail, deleteInvitation } from "server/resend-invitation";
+import { Loader2 } from "lucide-react";
+import { resendInvitationEmail } from "server/resend-invitation";
 
 type User = typeof usersTable.$inferSelect;
 
@@ -21,7 +21,7 @@ export default function AllUsers({ users, organizationId, onUserAdded }: AllUser
   const [addingUserId, setAddingUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [invitedUsers, setInvitedUsers] = useState<Set<string>>(new Set());
-  const [resendingEmail, setResendingEmail] = useState<string | null>(null);
+  const [setResendingEmail] = useState<string | null>(null);
   const router = useRouter();
 
   const handleInviteUser = async (user: User) => {
@@ -54,9 +54,7 @@ export default function AllUsers({ users, organizationId, onUserAdded }: AllUser
         } else {
           // Melhorar exibição do erro
           const errorMessage =
-            error.message ||
-            error.error ||
-            (typeof error === "string" ? error : "Erro desconhecido");
+            error.message || (typeof error === "string" ? error : "Erro desconhecido");
           toast.error(`Falha ao convidar membro: ${errorMessage}`);
         }
         console.error("❌ Erro detalhado:", error);
@@ -73,26 +71,6 @@ export default function AllUsers({ users, organizationId, onUserAdded }: AllUser
     } finally {
       setAddingUserId(null);
       setIsLoading(false);
-    }
-  };
-
-  const handleResendInvitation = async (user: User) => {
-    setResendingEmail(user.email);
-
-    try {
-      // Primeiro, tentar reenviar o email
-      const result = await resendInvitationEmail("invitation-id-placeholder");
-
-      if (result.success) {
-        toast.success("Email reenviado com sucesso!");
-      } else {
-        toast.error(result.error || "Erro ao reenviar email");
-      }
-    } catch (error) {
-      console.error("Erro ao reenviar convite:", error);
-      toast.error("Erro ao reenviar convite");
-    } finally {
-      setResendingEmail(null);
     }
   };
 
@@ -113,7 +91,7 @@ export default function AllUsers({ users, organizationId, onUserAdded }: AllUser
           <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
             <div>
               <div className="font-medium">{user.name}</div>
-              <div className="text-sm text-muted-foreground">{user.email}</div>
+              <div className="texJt-sm text-muted-foreground">{user.email}</div>
             </div>
             <Button
               onClick={() => handleInviteUser(user)}
