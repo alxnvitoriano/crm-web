@@ -26,7 +26,7 @@ const DashboardPage = async () => {
       <PageHeader>
         <PageHeaderContent>
           <PageTitle>Dashboard</PageTitle>
-          <PageDescription>Alan</PageDescription>
+          <PageDescription>Tenha uma visão geral do seu negócio.</PageDescription>
         </PageHeaderContent>
         <PageActions>
           <DatePicker />
