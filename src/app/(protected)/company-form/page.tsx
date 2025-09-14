@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/dialog";
 import CompanyForm from "./components/form";
 
+export const dynamic = "force-dynamic";
+
 const CompanyFormPage = () => {
   return (
     <Dialog open>

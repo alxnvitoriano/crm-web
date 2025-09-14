@@ -4,8 +4,17 @@ import Header from "@/components/header";
 import { Sidebar } from "./dashboard/_components/sidebar";
 import { getOrganizations } from "server/organization";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const organizations = await getOrganizations();
+  let organizations = [];
+  try {
+    organizations = await getOrganizations();
+  } catch (error) {
+    console.error("Error fetching organizations:", error);
+    // Fallback to empty array if there's an error
+  }
+
   return (
     <div className="flex h-screen bg-background">
       <SidebarProvider>

@@ -9,6 +9,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    serverComponentsExternalPackages: ["better-auth"],
+  },
   webpack: (config) => {
     config.resolve = config.resolve || {};
     config.resolve.alias = config.resolve.alias || {};

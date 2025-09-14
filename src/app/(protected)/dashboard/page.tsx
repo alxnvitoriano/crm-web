@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 import {
   PageActions,
   PageContainer,
@@ -33,7 +35,7 @@ const DashboardPage = async () => {
         </PageActions>
       </PageHeader>
       <PageContent>
-        <></>
+        <div>Dashboard content will go here</div>
       </PageContent>
     </PageContainer>
   );
