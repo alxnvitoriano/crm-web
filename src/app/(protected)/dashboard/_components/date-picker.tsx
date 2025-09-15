@@ -10,7 +10,7 @@ import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn } from "@/src/lib/utils";
 
 export function DatePicker({ className }: React.HTMLAttributes<HTMLDivElement>) {
   const [from, setFrom] = useQueryState("from", parseAsIsoDate.withDefault(new Date()));
