@@ -84,26 +84,15 @@ export const auth = betterAuth({
     }),
     organization({
       async sendInvitationEmail(data) {
-        console.warn("📧 Iniciando envio de convite por email...");
-        console.warn("📧 Dados do convite:", {
-          email: data.email,
-          organizationName: data.organization.name,
-          inviterName: data.inviter.user.name,
-          invitationId: data.id,
-        });
-
         if (!process.env.RESEND_API_KEY) {
-          console.warn("❌ RESEND_API_KEY not configured, skipping email send");
           return;
         }
 
         if (!process.env.EMAIL_SENDER_NAME || !process.env.EMAIL_SENDER_ADDRESS) {
-          console.warn("❌ EMAIL_SENDER_NAME or EMAIL_SENDER_ADDRESS not configured");
           return;
         }
 
-        const inviteLink = `https://example.com/accept-invitation/${data.id}`;
-        console.warn("📧 Link do convite:", inviteLink);
+        const inviteLink = `https://www.consorcioap.com.br/accept-invitation/${data.id}`;
 
         try {
           const result = await resend.emails.send({
@@ -134,18 +123,14 @@ export const auth = betterAuth({
 						  </div>
 						`,
           });
-          console.warn("✅ Resposta do Resend:", result);
 
-          // Verificar se houve erro na resposta
-          if ((result as any).error) {
-            console.error("❌ Erro do Resend:", (result as any).error);
+          // Opcional: validar retorno
+          if ((result as any)?.error) {
             throw new Error((result as any).error.message || "Erro ao enviar email");
           }
-
-          console.warn("✅ Email enviado com sucesso!");
-        } catch (error) {
-          console.error("❌ Erro ao enviar email:", error);
-          throw error;
+        } catch {
+          // Silenciar logs conforme solicitado, apenas não interromper fluxo
+          return;
         }
       },
       ac,

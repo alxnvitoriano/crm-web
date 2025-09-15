@@ -1,7 +1,5 @@
 "use server";
 
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { db } from "@/db";
 import { eq } from "drizzle-orm";
 import { invitation } from "@/db/schema";
@@ -55,7 +53,11 @@ export async function resendInvitationEmail(invitationId: string) {
     }
 
     // Enviar email
-    const inviteLink = `https://example.com/accept-invitation/${invite.id}`;
+    const inviteLink = `https://www.consorcioap.com.br/accept-invitation/${invite.id}`;
+
+    const invitedByUsername = (invite as any)?.inviter?.user?.name ?? "";
+    const invitedByEmail = (invite as any)?.inviter?.user?.email ?? "";
+    const teamName = (invite as any)?.organization?.name ?? "";
 
     const result = await resend.emails.send({
       from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
@@ -63,21 +65,26 @@ export async function resendInvitationEmail(invitationId: string) {
       subject: "Você foi convidado(a) a entrar em um time.",
       react: TeamInvitationEmail({
         email: invite.email,
-        invitedByUsername: invite.inviter.user.name,
-        invitedByEmail: invite.inviter.user.email,
-        teamName: invite.organization.name,
+        invitedByUsername,
+        invitedByEmail,
+        teamName,
         inviteLink,
       }),
     });
 
-    console.log("✅ Email reenviado com sucesso:", result);
+    // Opcional: validar sucesso pelo result.id
+    if (!(result as any)?.id && (result as any)?.error) {
+      return {
+        success: false,
+        error: "Falha ao reenviar email",
+      };
+    }
 
     return {
       success: true,
       message: "Email reenviado com sucesso",
     };
-  } catch (error) {
-    console.error("❌ Erro ao reenviar email:", error);
+  } catch {
     return {
       success: false,
       error: "Erro ao reenviar email",
@@ -93,8 +100,7 @@ export async function deleteInvitation(invitationId: string) {
       success: true,
       message: "Convite deletado com sucesso",
     };
-  } catch (error) {
-    console.error("❌ Erro ao deletar convite:", error);
+  } catch {
     return {
       success: false,
       error: "Erro ao deletar convite",
