@@ -18,11 +18,22 @@ import {
 
 const resend = new Resend(process.env.RESEND_API_KEY || "dummy-key");
 
+// Resolve base URLs safely
+const resolvedBaseUrl = (() => {
+  if (process.env.BETTER_AUTH_URL && process.env.BETTER_AUTH_URL.trim().length > 0) {
+    return process.env.BETTER_AUTH_URL;
+  }
+  if (process.env.VERCEL_URL && process.env.VERCEL_URL.trim().length > 0) {
+    const hasProtocol = /^https?:\/\//i.test(process.env.VERCEL_URL);
+    return hasProtocol ? process.env.VERCEL_URL : `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
+})();
+
+const resolvedPublicBaseUrl = resolvedBaseUrl; // use same base unless you need a separate public URL
+
 export const auth = betterAuth({
-  baseURL:
-    process.env.BETTER_AUTH_URL || process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000",
+  baseURL: resolvedBaseUrl,
   databaseHooks: {
     session: {
       create: {
@@ -46,7 +57,7 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      redirectURI: `${process.env.BETTER_AUTH_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"}/api/auth/callback/google`,
+      redirectURI: `${resolvedPublicBaseUrl}/api/auth/callback/google`,
     },
   },
   plugins: [
@@ -73,8 +84,8 @@ export const auth = betterAuth({
     }),
     organization({
       async sendInvitationEmail(data) {
-        console.log("📧 Iniciando envio de convite por email...");
-        console.log("📧 Dados do convite:", {
+        console.warn("📧 Iniciando envio de convite por email...");
+        console.warn("📧 Dados do convite:", {
           email: data.email,
           organizationName: data.organization.name,
           inviterName: data.inviter.user.name,
@@ -92,7 +103,7 @@ export const auth = betterAuth({
         }
 
         const inviteLink = `https://example.com/accept-invitation/${data.id}`;
-        console.log("📧 Link do convite:", inviteLink);
+        console.warn("📧 Link do convite:", inviteLink);
 
         try {
           const result = await resend.emails.send({
@@ -100,38 +111,38 @@ export const auth = betterAuth({
             to: data.email,
             subject: "Você foi convidado(a) a entrar em um time.",
             html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #333; text-align: center;">Você foi convidado(a) para a equipe ${data.organization.name}</h1>
-                <p style="color: #666; text-align: center;">${data.inviter.user.name} te convidou para colaborar</p>
-                
-                <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <p>Olá!</p>
-                  <p><strong>${data.inviter.user.name}</strong> (${data.inviter.user.email}) convidou você para participar da equipe <strong>${data.organization.name}</strong>.</p>
-                  <p>Clique no botão abaixo para aceitar o convite e começar a colaborar com sua equipe.</p>
-                </div>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${inviteLink}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
-                    Aceitar Convite
-                  </a>
-                </div>
-                
-                <p style="color: #666; font-size: 14px;">
-                  Se o botão não funcionar, você pode copiar e colar este link no seu navegador:<br>
-                  <a href="${inviteLink}" style="color: #2563eb;">${inviteLink}</a>
-                </p>
-              </div>
-            `,
+						  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+							<h1 style="color: #333; text-align: center;">Você foi convidado(a) para a equipe ${data.organization.name}</h1>
+							<p style="color: #666; text-align: center;">${data.inviter.user.name} te convidou para colaborar</p>
+							
+							<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+							  <p>Olá!</p>
+							  <p><strong>${data.inviter.user.name}</strong> (${data.inviter.user.email}) convidou você para participar da equipe <strong>${data.organization.name}</strong>.</p>
+							  <p>Clique no botão abaixo para aceitar o convite e começar a colaborar com sua equipe.</p>
+							</div>
+							
+							<div style="text-align: center; margin: 30px 0;">
+							  <a href="${inviteLink}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+								Aceitar Convite
+							  </a>
+							</div>
+							
+							<p style="color: #666; font-size: 14px;">
+							  Se o botão não funcionar, você pode copiar e colar este link no seu navegador:<br>
+							  <a href="${inviteLink}" style="color: #2563eb;">${inviteLink}</a>
+							</p>
+						  </div>
+						`,
           });
-          console.log("✅ Resposta do Resend:", result);
+          console.warn("✅ Resposta do Resend:", result);
 
           // Verificar se houve erro na resposta
-          if (result.error) {
-            console.error("❌ Erro do Resend:", result.error);
-            throw new Error(result.error.message || "Erro ao enviar email");
+          if ((result as any).error) {
+            console.error("❌ Erro do Resend:", (result as any).error);
+            throw new Error((result as any).error.message || "Erro ao enviar email");
           }
 
-          console.log("✅ Email enviado com sucesso!");
+          console.warn("✅ Email enviado com sucesso!");
         } catch (error) {
           console.error("❌ Erro ao enviar email:", error);
           throw error;
