@@ -12,7 +12,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Users, UserCheck, Crown, TrendingUp, Search, Shield, Headphones } from "lucide-react";
 import Link from "next/link";
 import {

@@ -18,7 +18,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { isRedirectError } from "next/dist/client/components/redirect";
 
 const companyFormSchema = z.object({
   name: z.string().trim().min(1, { message: "Nome é obrigatório" }),
@@ -36,9 +35,6 @@ const CompanyForm = () => {
     try {
       await createCompany(data.name);
     } catch (error) {
-      if (isRedirectError(error)) {
-        return;
-      }
       console.error(error);
       toast.error("Erro ao criar empresa.");
     }
