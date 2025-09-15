@@ -6,7 +6,7 @@ import { Resend } from "resend";
 
 import { db } from "@/src/db";
 import { eq } from "drizzle-orm";
-import { getActiveOrganization } from "server/organization";
+import { getActiveOrganization } from "../../server/organization";
 import {
   ac,
   administrative,
@@ -15,7 +15,6 @@ import {
   salesperson,
   owner,
 } from "./auth/permissions";
-import TeamInvitationEmail from "emails/team-invitation";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "dummy-key");
 
