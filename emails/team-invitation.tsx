@@ -96,11 +96,11 @@ const TeamInvitationEmail = (props: OrganizationInvitationEmailProps) => {
                 pode ignorar este e-mail com segurança.
               </Text>
               <Text className="text-[12px] text-gray-500 leading-[16px] m-0">
-                © {new Date().getFullYear()} Plataforma de Colaboração. Todos os direitos
-                reservados.
+                © {new Date().getFullYear()} CRM AP. Todos os direitos reservados.
               </Text>
               <Text className="text-[12px] text-gray-500 leading-[16px] m-0">
-                Av. Paulista, 1000, Conjunto 101, São Paulo, SP, 01310-100
+                Alameda Joaquim Eugenio de Lima, nº 598, cj. 21, Jardim Paulista, São Paulo, SP,
+                01403-000
               </Text>
               <Link href="#" className="text-[12px] text-gray-500 underline">
                 Cancelar inscrição

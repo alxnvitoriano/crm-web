@@ -5,9 +5,9 @@ export async function GET(request: NextRequest, { params }: { params: { invitati
   const { invitationId } = params;
   const data = await auth.api.acceptInvitation({
     body: {
-      invitationId: "invitation-id",
+      invitationId,
     },
   });
 
-  console.log(data);
+  console.warn(data);
 }
