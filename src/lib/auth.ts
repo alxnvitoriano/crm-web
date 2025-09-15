@@ -92,7 +92,7 @@ export const auth = betterAuth({
           return;
         }
 
-        const inviteLink = `https://www.consorcioap.com.br/accept-invitation/${data.id}`;
+        const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/api/accept-invitation/${data.id}`;
 
         try {
           const result = await resend.emails.send({
