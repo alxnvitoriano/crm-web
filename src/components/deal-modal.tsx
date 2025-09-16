@@ -60,8 +60,8 @@ export function DealModal({ isOpen, onClose, onSave, deal }: DealModalProps) {
         title: deal.title,
         client: deal.client,
         value: deal.value.toString(),
-        stage: deal.stage,
-        priority: deal.priority,
+        stage: deal.stage as any,
+        priority: deal.priority as any,
         dueDate: deal.dueDate,
         description: deal.description || "",
       });

@@ -17,7 +17,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Bell, Search, Settings, LogOut, User, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { OrganizationSwitcher } from "@/app/(protected)/team/components/organization-switcher";
-import { Organization } from "@/db/schema";
+// import { Organization } from "@/db/schema"; // No longer needed here
+import { useOrganizationContext } from "@/lib/use-organization-context";
 
 const notifications = [
   {
@@ -43,14 +44,16 @@ const notifications = [
   },
 ];
 
-interface HeaderProps {
-  organizations?: Organization[];
-}
+// interface HeaderProps {
+//   organizations?: Organization[]; // No longer needed as we'll use context
+// }
 
-export default function Header({ organizations }: HeaderProps) {
+export default function Header() {
+  // Removed organizations prop
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
   const unreadCount = notifications.filter((n) => n.unread).length;
+  const { currentOrganization, loading: loadingOrganization } = useOrganizationContext(); // Use context
 
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
@@ -74,8 +77,9 @@ export default function Header({ organizations }: HeaderProps) {
 
       <div className="flex items-center space-x-4">
         {/* Right Section */}
-        {organizations && organizations.length > 0 && (
-          <OrganizationSwitcher organizations={organizations} />
+        {/* Pass an empty array to OrganizationSwitcher for now; the switcher itself should fetch organizations internally */}
+        {!loadingOrganization && currentOrganization && (
+          <OrganizationSwitcher organizations={currentOrganization ? [currentOrganization] : []} />
         )}
         {/* Theme Toggle */}
         <Button

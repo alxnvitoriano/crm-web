@@ -86,7 +86,7 @@ export function AssemblyResultModal({
         drawWinners: result.drawWinners,
         nextAssemblyDate: result.nextAssemblyDate,
         observations: result.observations,
-        status: result.status,
+        status: result.status as any,
         createdBy: result.createdBy,
       });
     } else {

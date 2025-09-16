@@ -59,7 +59,12 @@ export function DocumentUploadModal({
       setFormData({
         customerName: document.customerName,
         customerCpf: document.customerCpf,
-        documents: document.documents,
+        documents: {
+          cpfFront: document.documents?.cpfFront || "",
+          cpfBack: document.documents?.cpfBack || "",
+          rgFront: document.documents?.rgFront || "",
+          rgBack: document.documents?.rgBack || "",
+        },
         notes: document.notes || "",
       });
     } else {

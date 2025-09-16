@@ -86,7 +86,7 @@ export function PostSaleModal({ isOpen, onClose, onSubmit, postSale }: PostSaleM
         assemblyDay: postSale.assemblyDay,
         dueDay: postSale.dueDay,
         seller: postSale.seller,
-        billingStatus: postSale.billingStatus,
+        billingStatus: postSale.billingStatus as any,
         lastContact: postSale.lastContact,
         notes: postSale.notes,
       });

@@ -24,21 +24,23 @@ import {
 } from "@/components/ui/select";
 
 interface Client {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;
   company: string;
   status: "ativo" | "inativo" | "lead" | "cliente";
   avatar?: string;
-  createdAt: string;
-  lastContact: string;
+  createdAt: Date;
+  updatedAt: Date;
+  companyId: string;
+  salespersonId?: string;
 }
 
 interface ClientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (client: Omit<Client, "id" | "createdAt" | "lastContact">) => void;
+  onSave: (client: Omit<Client, "id" | "createdAt" | "updatedAt" | "companyId">) => void;
   client?: Client | null;
 }
 
@@ -59,7 +61,7 @@ export function ClientModal({ isOpen, onClose, onSave, client }: ClientModalProp
         email: client.email,
         phone: client.phone,
         company: client.company,
-        status: client.status,
+        status: client.status as any,
         notes: "",
       });
     } else {

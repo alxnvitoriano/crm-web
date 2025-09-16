@@ -74,7 +74,7 @@ export function ClosingModal({ isOpen, onClose, onSubmit, closing }: ClosingModa
         installment: closing.installment,
         assemblyDay: closing.assemblyDay,
         dueDay: closing.dueDay,
-        status: closing.status,
+        status: closing.status as any,
         seller: closing.seller,
       });
     } else {

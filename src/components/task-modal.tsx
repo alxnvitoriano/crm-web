@@ -64,10 +64,10 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
         description: task.description || "",
         dueDate: task.dueDate,
         dueTime: task.dueTime,
-        priority: task.priority,
-        status: task.status,
+        priority: task.priority as any,
+        status: task.status as any,
         assignedTo: task.assignedTo || "",
-        category: task.category,
+        category: task.category as any,
       });
     } else {
       // Set default date to today and time to current hour + 1

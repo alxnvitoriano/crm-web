@@ -88,7 +88,7 @@ export function NeedsAssessmentModal({
         creditCheck: assessment.creditCheck,
         previousFinancing: assessment.previousFinancing,
         purchaseReason: assessment.purchaseReason,
-        status: assessment.status,
+        status: assessment.status as any,
       });
     } else {
       setFormData({

@@ -87,9 +87,9 @@ export function SaleConfirmationModal({
   useEffect(() => {
     if (confirmation) {
       setFormData({
-        signature: confirmation.signature,
-        payment: confirmation.payment,
-        documentation: confirmation.documentation,
+        signature: confirmation.signature as any,
+        payment: confirmation.payment as any,
+        documentation: confirmation.documentation as any,
       });
     }
   }, [confirmation, isOpen]);
@@ -99,17 +99,20 @@ export function SaleConfirmationModal({
     let overallStatus: SaleConfirmation["overallStatus"] = "pending";
 
     if (
-      formData.signature.status === "signed" &&
-      formData.payment.status === "paid" &&
-      formData.documentation.status === "complete"
+      (formData.signature.status as string) === "signed" &&
+      (formData.payment.status as string) === "paid" &&
+      (formData.documentation.status as string) === "complete"
     ) {
       overallStatus = "completed";
-    } else if (formData.signature.status === "rejected" || formData.payment.status === "failed") {
+    } else if (
+      (formData.signature.status as string) === "rejected" ||
+      (formData.payment.status as string) === "failed"
+    ) {
       overallStatus = "cancelled";
     } else if (
-      formData.signature.status === "signed" ||
-      formData.payment.status === "paid" ||
-      formData.documentation.status !== "pending"
+      (formData.signature.status as string) === "signed" ||
+      (formData.payment.status as string) === "paid" ||
+      (formData.documentation.status as string) !== "pending"
     ) {
       overallStatus = "in-progress";
     }
@@ -121,7 +124,7 @@ export function SaleConfirmationModal({
   };
 
   const handleSignatureUpdate = (status: "signed" | "rejected") => {
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
       signature: {
         ...prev.signature,
@@ -286,22 +289,22 @@ export function SaleConfirmationModal({
                 <div className="flex items-center gap-4">
                   <Badge
                     variant={
-                      formData.signature.status === "signed"
+                      (formData.signature.status as string) === "signed"
                         ? "default"
-                        : formData.signature.status === "rejected"
+                        : (formData.signature.status as string) === "rejected"
                           ? "destructive"
                           : "secondary"
                     }
                   >
-                    {formData.signature.status === "signed"
+                    {(formData.signature.status as string) === "signed"
                       ? "Assinado"
-                      : formData.signature.status === "rejected"
+                      : (formData.signature.status as string) === "rejected"
                         ? "Rejeitado"
                         : "Pendente"}
                   </Badge>
                 </div>
 
-                {formData.signature.status === "pending" && (
+                {(formData.signature.status as string) === "pending" && (
                   <div className="flex gap-4">
                     <Button onClick={() => handleSignatureUpdate("signed")} className="gap-2">
                       <CheckCircle className="h-4 w-4" />
@@ -318,7 +321,7 @@ export function SaleConfirmationModal({
                   </div>
                 )}
 
-                {formData.signature.status === "signed" && (
+                {(formData.signature.status as string) === "signed" && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">
@@ -407,7 +410,7 @@ export function SaleConfirmationModal({
                   </div>
                 </div>
 
-                {formData.payment.status === "paid" && formData.payment.paidAt && (
+                {(formData.payment.status as string) === "paid" && formData.payment.paidAt && (
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">
                       Data do Pagamento

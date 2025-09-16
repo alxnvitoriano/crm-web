@@ -69,8 +69,8 @@ export function QualityControlModal({
         cpf: control.cpf,
         contract: control.contract,
         seller: control.seller,
-        status: control.status,
-        checking: control.checking,
+        status: control.status as any,
+        checking: control.checking as any,
         answersCall: control.answersCall,
         hasDoubt: control.hasDoubt,
         cancelledInCheck: control.cancelledInCheck,
@@ -103,11 +103,11 @@ export function QualityControlModal({
     const updatedFormData = {
       ...formData,
       checkedAt:
-        formData.checking === "completed" && !formData.checkedAt
+        (formData.checking as string) === "completed" && !formData.checkedAt
           ? new Date().toISOString().split("T")[0]
           : formData.checkedAt,
       checkedBy:
-        formData.checking === "completed" && !formData.checkedBy
+        (formData.checking as string) === "completed" && !formData.checkedBy
           ? "Usuário Atual"
           : formData.checkedBy,
     };
@@ -271,7 +271,7 @@ export function QualityControlModal({
           </div>
 
           {/* Dados da Verificação */}
-          {formData.checking === "completed" && (
+          {(formData.checking as string) === "completed" && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Dados da Verificação</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
