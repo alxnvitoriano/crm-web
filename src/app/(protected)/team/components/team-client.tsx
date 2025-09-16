@@ -253,7 +253,7 @@ export default function TeamClient({ organizations }: TeamClientProps) {
             {loading ? (
               <Loader2 className="h-6 w-6 animate-spin" />
             ) : (
-              <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+              <div className="text-2xl font-bold">{stats.active}</div>
             )}
           </CardContent>
         </Card>
@@ -266,7 +266,7 @@ export default function TeamClient({ organizations }: TeamClientProps) {
             {loading ? (
               <Loader2 className="h-6 w-6 animate-spin" />
             ) : (
-              <div className="text-2xl font-bold text-purple-600">{stats.managers}</div>
+              <div className="text-2xl font-bold">{stats.managers}</div>
             )}
           </CardContent>
         </Card>
@@ -279,7 +279,7 @@ export default function TeamClient({ organizations }: TeamClientProps) {
             {loading ? (
               <Loader2 className="h-6 w-6 animate-spin" />
             ) : (
-              <div className="text-2xl font-bold text-orange-600">{stats.sellers}</div>
+              <div className="text-2xl font-bold">{stats.sellers}</div>
             )}
           </CardContent>
         </Card>
