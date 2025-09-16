@@ -44,6 +44,8 @@ import {
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 
+export const dynamic = "force-dynamic";
+
 interface Client {
   id: string; // UUID do banco
   name: string;
@@ -80,7 +82,13 @@ export default function ClientsPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Hook de permissões
-  const { canCreate, canRead, canUpdate, canDelete } = usePermissions({
+  const {
+    canCreate,
+    canRead,
+    canUpdate,
+    canDelete,
+    loading: permissionsLoading,
+  } = usePermissions({
     userId: CURRENT_USER_ID,
     organizationId: CURRENT_ORGANIZATION_ID,
   });
@@ -88,6 +96,8 @@ export default function ClientsPage() {
   // Carregar clientes
   useEffect(() => {
     const loadClients = async () => {
+      if (permissionsLoading) return;
+
       if (!canRead("client")) {
         setLoading(false);
         return;
@@ -97,23 +107,16 @@ export default function ClientsPage() {
         setLoading(true);
         setError(null);
 
-        // TODO: Implementar chamada para API
-        // const response = await fetch('/api/clients');
-        // const data = await response.json();
-        // setClients(data);
-
-        // Temporariamente usando dados mockados para desenvolvimento
-        setClients(createMockClients());
+        setClients([]);
       } catch (err) {
         console.error("Erro ao carregar clientes:", err);
-        setError(err instanceof Error ? err.message : "Erro desconhecido");
+        setError(err instanceof Error ? err.message : "Erro desconhecido.");
       } finally {
         setLoading(false);
       }
     };
-
     loadClients();
-  }, [canRead]);
+  }, [canRead, permissionsLoading]);
 
   const filteredClients = clients.filter((client) => {
     const matchesSearch =
@@ -144,9 +147,6 @@ export default function ClientsPage() {
     if (!confirm("Tem certeza que deseja excluir este cliente?")) return;
 
     try {
-      // TODO: Implementar chamada para API
-      // await fetch(`/api/clients/${clientId}`, { method: 'DELETE' });
-
       // Remove do estado local
       setClients(clients.filter((client) => client.id !== clientId));
     } catch (err) {
@@ -163,14 +163,6 @@ export default function ClientsPage() {
 
     try {
       if (editingClient) {
-        // TODO: Implementar atualização via API
-        // const response = await fetch(`/api/clients/${editingClient.id}`, {
-        //   method: 'PUT',
-        //   body: JSON.stringify(clientData),
-        // });
-        // const updatedClient = await response.json();
-
-        // Update local state
         setClients(
           clients.map((client) =>
             client.id === editingClient.id
@@ -179,17 +171,6 @@ export default function ClientsPage() {
           )
         );
       } else {
-        // TODO: Implementar criação via API
-        // const response = await fetch('/api/clients', {
-        //   method: 'POST',
-        //   body: JSON.stringify({
-        //     ...clientData,
-        //     companyId: CURRENT_ORGANIZATION_ID,
-        //   }),
-        // });
-        // const newClient = await response.json();
-
-        // Add to local state
         const newClient: Client = {
           ...clientData,
           id: `client-${Date.now()}`, // Temporary ID
@@ -207,16 +188,16 @@ export default function ClientsPage() {
   };
 
   // Se não tem permissão para ler clientes, mostrar mensagem
-  if (!canRead("client")) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Acesso Negado</h2>
-          <p className="text-muted-foreground">Você não tem permissão para visualizar clientes.</p>
-        </div>
-      </div>
-    );
-  }
+  // if (!canRead("client")) {
+  //   return (
+  //    <div className="flex items-center justify-center min-h-96">
+  //       <div className="text-center">
+  //<h2 className="text-2xl font-bold mb-2">Acesso Negado</h2>
+  //         <p className="text-muted-foreground">Você não tem permissão para visualizar clientes.</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="space-y-6">
@@ -442,47 +423,4 @@ function convertClientForModal(client: Client): ModalClient {
     createdAt: client.createdAt.toISOString().split("T")[0],
     lastContact: client.updatedAt.toISOString().split("T")[0],
   };
-}
-
-// Função auxiliar para criar dados mockados durante desenvolvimento
-// TODO: Remover quando a API estiver implementada
-function createMockClients(): Client[] {
-  return [
-    {
-      id: "client-1",
-      name: "Ana Silva",
-      email: "ana.silva@empresa.com",
-      phone: "(11) 99999-9999",
-      company: "Tech Solutions Ltda",
-      status: "ativo",
-      avatar: "/professional-woman-diverse.png",
-      createdAt: new Date("2024-01-15"),
-      updatedAt: new Date("2024-01-20"),
-      companyId: CURRENT_ORGANIZATION_ID,
-    },
-    {
-      id: "client-2",
-      name: "Carlos Santos",
-      email: "carlos@inovacorp.com",
-      phone: "(11) 88888-8888",
-      company: "InovaCorp",
-      status: "cliente",
-      avatar: "/professional-man.png",
-      createdAt: new Date("2024-01-10"),
-      updatedAt: new Date("2024-01-18"),
-      companyId: CURRENT_ORGANIZATION_ID,
-    },
-    {
-      id: "client-3",
-      name: "Maria Oliveira",
-      email: "maria.oliveira@startup.com",
-      phone: "(11) 77777-7777",
-      company: "StartupXYZ",
-      status: "lead",
-      avatar: "/professional-user.png",
-      createdAt: new Date("2024-01-12"),
-      updatedAt: new Date("2024-01-19"),
-      companyId: CURRENT_ORGANIZATION_ID,
-    },
-  ];
 }

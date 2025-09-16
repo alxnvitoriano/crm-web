@@ -188,7 +188,6 @@ function MyComponent() {
       organizationId="org-456"
       permission="create:client"
       className="btn btn-primary"
-      onClick={() => console.log("Criar cliente")}
     >
       Criar Cliente
     </PermissionButton>
@@ -272,21 +271,6 @@ function ClientForm({ clientId }: { clientId?: string }) {
     </form>
   );
 }
-```
-
-## Gerenciamento de Roles
-
-### Criar Role Personalizado
-
-```tsx
-import { createCustomRole } from "@/lib/rbac/permissions";
-
-const newRole = await createCustomRole(
-  "Vendedor Sênior",
-  "Vendedor com permissões estendidas",
-  "org-456",
-  ["create:client", "read:client", "update:client", "read:reports"]
-);
 ```
 
 ### Obter Roles da Organização

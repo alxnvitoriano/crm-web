@@ -149,7 +149,7 @@ export function Sidebar({ className }: SidebarProps) {
       .toUpperCase();
   };
 
-  const userName = session.data?.user?.name || "";
+  const companyName = session.data?.user?.company?.name || " ";
 
   return (
     <div
@@ -215,7 +215,7 @@ export function Sidebar({ className }: SidebarProps) {
                     <SidebarMenuButton className="flex items-center gap-2" isActive={true}>
                       <Avatar className="h-10 w-10">
                         <AvatarFallback className="flex items-center justify-center">
-                          {getInitials(userName)}
+                          {getInitials(companyName)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col justify-center text-left">
