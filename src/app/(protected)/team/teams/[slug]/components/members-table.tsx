@@ -42,7 +42,7 @@ export default function MembersTable({
         // Refresh da página para mostrar as mudanças
         router.refresh();
       } else {
-        toast.error(result.error);
+        toast.error(typeof result.error === "string" ? result.error : "Erro desconhecido");
       }
     } catch (error) {
       toast.error("Erro ao remover membro");
@@ -67,7 +67,7 @@ export default function MembersTable({
           <TableRow key={member.id}>
             <TableCell className="font-medium">{member.user.name}</TableCell>
             <TableCell>{member.user.email}</TableCell>
-            <TableCell>{member.role}</TableCell>
+            <TableCell>{member.roleId || "N/A"}</TableCell>
             <TableCell className="text-center">
               <Button
                 variant="destructive"

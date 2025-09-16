@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,16 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Users, UserCheck, Crown, TrendingUp, Search, Shield, Headphones } from "lucide-react";
+import {
+  Users,
+  UserCheck,
+  Crown,
+  TrendingUp,
+  Search,
+  Shield,
+  Headphones,
+  Loader2,
+} from "lucide-react";
 import Link from "next/link";
 import {
   Dialog,
@@ -24,116 +33,48 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CreateOrganizationForm } from "./organization-form";
+import { usePermissions } from "@/hooks/use-permissions";
 
-// Tipos de usuário e suas permissões
-const userRoles = {
-  "gerente-geral": {
-    name: "Gerente Geral",
-    description: "Acesso total ao sistema",
-    permissions: [1, 2, 3, 4, 5, 6, 7, 8],
-    color: "bg-red-500",
-    icon: Crown,
-  },
-  administrativo: {
-    name: "Administrativo",
-    description: "Etapas 4 a 7",
-    permissions: [4, 5, 6, 7],
-    color: "bg-blue-500",
-    icon: Shield,
-  },
-  "pos-venda": {
-    name: "Pós Venda",
-    description: "Pós venda e etapa 8",
-    permissions: [8],
-    color: "bg-green-500",
-    icon: Headphones,
-  },
-  "gerente-vendas": {
-    name: "Gerente de Vendas",
-    description: "Equipe própria - etapas 1 a 8",
-    permissions: [1, 2, 3, 4, 5, 6, 7, 8],
-    color: "bg-purple-500",
-    icon: TrendingUp,
-  },
-  vendedor: {
-    name: "Vendedor",
-    description: "Editável: 1-4,8 | Visível: 5-7",
-    permissions: [1, 2, 3, 4, 5, 6, 7, 8],
-    editablePermissions: [1, 2, 3, 4, 8],
-    color: "bg-orange-500",
-    icon: UserCheck,
-  },
+// Tipos para os dados reais
+interface TeamMember {
+  id: string;
+  userId: string;
+  organizationId: string;
+  roleId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string;
+  };
+  role: {
+    id: string;
+    name: string;
+    description?: string;
+    isSystemRole: boolean;
+  };
+}
+
+interface RoleInfo {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  icon: any;
+  permissions: string[];
+}
+
+// Mapeamento de roles do sistema para exibição
+const systemRoleDisplay = {
+  Owner: { color: "bg-red-500", icon: Crown },
+  Admin: { color: "bg-blue-500", icon: Shield },
+  "Gerente de Vendas": { color: "bg-purple-500", icon: TrendingUp },
+  Vendedor: { color: "bg-orange-500", icon: UserCheck },
+  Administrativo: { color: "bg-green-500", icon: Shield },
+  "Pós-Venda": { color: "bg-teal-500", icon: Headphones },
 };
-
-// Dados simulados da equipe
-const teamMembers = [
-  {
-    id: 1,
-    name: "Carlos Silva",
-    email: "carlos.silva@empresa.com",
-    phone: "(11) 99999-0001",
-    role: "gerente-geral",
-    team: null,
-    status: "ativo",
-    joinDate: "2023-01-15",
-    avatar: "/professional-man.png",
-  },
-  {
-    id: 2,
-    name: "Ana Santos",
-    email: "ana.santos@empresa.com",
-    phone: "(11) 99999-0002",
-    role: "gerente-vendas",
-    team: "Equipe Alpha",
-    status: "ativo",
-    joinDate: "2023-02-20",
-    avatar: "/professional-woman-diverse.png",
-  },
-  {
-    id: 3,
-    name: "João Oliveira",
-    email: "joao.oliveira@empresa.com",
-    phone: "(11) 99999-0003",
-    role: "vendedor",
-    team: "Equipe Alpha",
-    status: "ativo",
-    joinDate: "2023-03-10",
-    avatar: "/professional-user.png",
-  },
-  {
-    id: 4,
-    name: "Maria Costa",
-    email: "maria.costa@empresa.com",
-    phone: "(11) 99999-0004",
-    role: "administrativo",
-    team: null,
-    status: "ativo",
-    joinDate: "2023-01-25",
-    avatar: "/professional-woman-diverse.png",
-  },
-  {
-    id: 5,
-    name: "Pedro Ferreira",
-    email: "pedro.ferreira@empresa.com",
-    phone: "(11) 99999-0005",
-    role: "pos-venda",
-    team: null,
-    status: "ativo",
-    joinDate: "2023-04-05",
-    avatar: "/professional-man.png",
-  },
-  {
-    id: 6,
-    name: "Lucia Rodrigues",
-    email: "lucia.rodrigues@empresa.com",
-    phone: "(11) 99999-0006",
-    role: "vendedor",
-    team: "Equipe Beta",
-    status: "inativo",
-    joinDate: "2023-05-12",
-    avatar: "/professional-user.png",
-  },
-];
 
 interface TeamClientProps {
   organizations: Array<{
@@ -146,25 +87,111 @@ interface TeamClientProps {
   }>;
 }
 
+// Função para buscar membros da organização atual
+async function fetchTeamMembers(organizationId: string): Promise<TeamMember[]> {
+  try {
+    const response = await fetch(`/api/organizations/${organizationId}/members`);
+    if (!response.ok) {
+      console.error("Erro ao buscar membros:", response.statusText);
+      return [];
+    }
+    const data = await response.json();
+    return data.members || [];
+  } catch (error) {
+    console.error("Erro ao buscar membros:", error);
+    return [];
+  }
+}
+
+// Função para buscar roles disponíveis
+async function fetchRoles(): Promise<RoleInfo[]> {
+  try {
+    const response = await fetch("/api/roles");
+    if (!response.ok) {
+      console.error("Erro ao buscar roles:", response.statusText);
+      return [];
+    }
+    const data = await response.json();
+
+    // Mapear roles com informações de exibição
+    return (
+      data.roles.map((role: any) => ({
+        id: role.id,
+        name: role.name,
+        description: role.description,
+        color:
+          systemRoleDisplay[role.name as keyof typeof systemRoleDisplay]?.color || "bg-gray-500",
+        icon: systemRoleDisplay[role.name as keyof typeof systemRoleDisplay]?.icon || Users,
+        permissions: role.permissions || [],
+      })) || []
+    );
+  } catch (error) {
+    console.error("Erro ao buscar roles:", error);
+    return [];
+  }
+}
+
 export default function TeamClient({ organizations }: TeamClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [roles, setRoles] = useState<RoleInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Hook de permissões - por enquanto usando IDs fixos para desenvolvimento
+  const { canRead } = usePermissions({
+    userId: "user-123", // TODO: Obter do contexto de autenticação
+    organizationId: organizations[0]?.id || "",
+  });
+
+  // Carregar dados reais
+  useEffect(() => {
+    const loadData = async () => {
+      if (!canRead || !canRead("user")) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Buscar roles disponíveis
+        const rolesData = await fetchRoles();
+        setRoles(rolesData);
+
+        // Buscar membros da primeira organização (ou todas)
+        if (organizations.length > 0) {
+          const membersData = await fetchTeamMembers(organizations[0].id);
+          setMembers(membersData);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar dados da equipe:", err);
+        setError(err instanceof Error ? err.message : "Erro desconhecido");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [organizations, canRead]);
 
   // Filtrar membros da equipe
-  const filteredMembers = teamMembers.filter((member) => {
+  const filteredMembers = members.filter((member) => {
     const matchesSearch =
-      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === "all" || member.role === selectedRole;
+      member.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = selectedRole === "all" || member.role.id === selectedRole;
     return matchesSearch && matchesRole;
   });
 
   // Estatísticas da equipe
   const stats = {
-    total: teamMembers.length,
-    active: teamMembers.filter((m) => m.status === "ativo").length,
-    managers: teamMembers.filter((m) => m.role.includes("gerente")).length,
-    sellers: teamMembers.filter((m) => m.role === "vendedor").length,
+    total: members.length,
+    active: members.filter((_m) => true).length, // TODO: Adicionar campo de status
+    managers: members.filter((m) => m.role.name.includes("Gerente")).length,
+    sellers: members.filter((m) => m.role.name === "Vendedor").length,
   };
 
   return (
@@ -210,7 +237,11 @@ export default function TeamClient({ organizations }: TeamClientProps) {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            {loading ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <div className="text-2xl font-bold">{stats.total}</div>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -219,7 +250,11 @@ export default function TeamClient({ organizations }: TeamClientProps) {
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+            {loading ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -228,7 +263,11 @@ export default function TeamClient({ organizations }: TeamClientProps) {
             <Crown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{stats.managers}</div>
+            {loading ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <div className="text-2xl font-bold text-purple-600">{stats.managers}</div>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -237,7 +276,11 @@ export default function TeamClient({ organizations }: TeamClientProps) {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.sellers}</div>
+            {loading ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <div className="text-2xl font-bold text-orange-600">{stats.sellers}</div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -266,8 +309,8 @@ export default function TeamClient({ organizations }: TeamClientProps) {
               className="px-3 py-2 border border-input bg-background rounded-md text-sm"
             >
               <option value="all">Todos os Cargos</option>
-              {Object.entries(userRoles).map(([key, role]) => (
-                <option key={key} value={key}>
+              {roles.map((role) => (
+                <option key={role.id} value={role.id}>
                   {role.name}
                 </option>
               ))}
@@ -285,88 +328,98 @@ export default function TeamClient({ organizations }: TeamClientProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Membro</TableHead>
-                <TableHead>Cargo</TableHead>
-                <TableHead>Equipe</TableHead>
-                <TableHead>Permissões</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Data de Entrada</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMembers.map((member) => {
-                const role = userRoles[member.role as keyof typeof userRoles];
-                const RoleIcon = role.icon;
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
+              Carregando membros...
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-destructive">
+              <p>Erro ao carregar membros: {error}</p>
+            </div>
+          ) : filteredMembers.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Nenhum membro encontrado.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Membro</TableHead>
+                  <TableHead>Cargo</TableHead>
+                  <TableHead>Permissões</TableHead>
+                  <TableHead>Data de Entrada</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredMembers.map((member) => {
+                  // Encontrar informações do role para exibição
+                  const roleInfo = systemRoleDisplay[
+                    member.role.name as keyof typeof systemRoleDisplay
+                  ] || {
+                    color: "bg-gray-500",
+                    icon: Users,
+                  };
+                  const RoleIcon = roleInfo.icon;
 
-                return (
-                  <TableRow key={member.id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={member.avatar || "/placeholder.svg"}
-                            alt={member.name}
-                          />
-                          <AvatarFallback>
-                            {member.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{member.name}</div>
-                          <div className="text-sm text-muted-foreground">{member.email}</div>
+                  return (
+                    <TableRow key={member.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage
+                              src={member.user.image || "/placeholder.svg"}
+                              alt={member.user.name}
+                            />
+                            <AvatarFallback>
+                              {member.user.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{member.user.name}</div>
+                            <div className="text-sm text-muted-foreground">{member.user.email}</div>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <div className={`p-1 rounded-full ${role.color}`}>
-                          <RoleIcon className="h-3 w-3 text-white" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <div className={`p-1 rounded-full ${roleInfo.color}`}>
+                            <RoleIcon className="h-3 w-3 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-medium">{member.role.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {member.role.description || "Sem descrição"}
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-medium">{role.name}</div>
-                          <div className="text-xs text-muted-foreground">{role.description}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{member.team || "-"}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {role.permissions.map((permission) => (
-                          <span key={permission} className="px-2 py-1 text-xs bg-muted rounded">
-                            {permission}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {/* TODO: Adicionar permissões específicas do role */}
+                          <span className="px-2 py-1 text-xs bg-muted rounded">
+                            {member.role.name}
                           </span>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-2 py-1 text-xs rounded ${
-                          member.status === "ativo"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {member.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>{member.joinDate}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm">
-                        Editar
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(member.createdAt).toLocaleDateString("pt-BR")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="outline" size="sm">
+                          Editar
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

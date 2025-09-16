@@ -22,7 +22,10 @@ export default async function TeamsPageView({ params }: { params: Params }) {
         <h1 className="text-2xl font-bold">{organization.name}</h1>
       </div>
 
-      <MembersTable members={organization.members || []} organizationId={organization.id} />
+      <MembersTable
+        members={(organization as any).members || []}
+        organizationId={organization.id}
+      />
 
       <AllUsers users={availableUsers} organizationId={organization.id} />
     </div>
