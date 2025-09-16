@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { headers } from "next/headers"; // This will be removed as it's a client component
-import { redirect } from "next/navigation"; // This will be removed as it's a client component
 
 import {
   PageActions,
@@ -13,7 +11,6 @@ import {
   PageHeaderContent,
   PageTitle,
 } from "@/components/ui/page-container";
-import { auth } from "@/lib/auth"; // This will be removed as it's a client component
 import { DatePicker } from "./_components/date-picker";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,16 +23,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Loader2,
-  TrendingUp,
-  Users,
-  Percent,
-  ClipboardList,
-  Wallet,
-  DollarSign,
-  Award,
-} from "lucide-react";
+import { Loader2, Users, Percent, Wallet, DollarSign } from "lucide-react";
 import { useOrganizationContext } from "@/lib/use-organization-context"; // Assuming this context exists or will be created
 
 interface SalesMetrics {
@@ -118,11 +106,6 @@ const DashboardPage = () => {
     fetchMetrics();
     fetchRanking();
   }, [organizationId]);
-
-  // Helper para formatar moeda
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-  };
 
   return (
     <PageContainer>

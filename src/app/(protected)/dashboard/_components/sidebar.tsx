@@ -140,6 +140,17 @@ export function Sidebar({ className }: SidebarProps) {
     });
   };
 
+  const getInitials = (name = "") => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  const userName = session.data?.user?.name || "";
+
   return (
     <div
       className={cn(
@@ -204,7 +215,7 @@ export function Sidebar({ className }: SidebarProps) {
                     <SidebarMenuButton className="flex items-center gap-2" isActive={true}>
                       <Avatar className="h-10 w-10">
                         <AvatarFallback className="flex items-center justify-center">
-                          A
+                          {getInitials(userName)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col justify-center text-left">
