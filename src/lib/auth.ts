@@ -1,10 +1,10 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { customSession, organization } from "better-auth/plugins";
-import * as schema from "@/src/db/schema";
+import * as schema from "@/db/schema";
 import { Resend } from "resend";
 
-import { db } from "@/src/db";
+import { db } from "@/db";
 import { eq } from "drizzle-orm";
 import { getActiveOrganization } from "../../server/organization";
 import {
