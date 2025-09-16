@@ -5,13 +5,13 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { eq, and } from "drizzle-orm";
-import { member, Role } from "@/db/schema";
+import { member } from "@/db/schema";
 import { isAdmin } from "./permissions";
 
 export const addMemberToOrganization = async (
   organizationId: string,
   userId: string,
-  role: Role
+  roleId: string
 ) => {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -51,7 +51,7 @@ export const addMemberToOrganization = async (
         body: {
           userId,
           organizationId,
-          role,
+          role: roleId as "member" | "administrative" | "post_sale" | "owner" | "admin",
         },
       });
     } catch (apiError) {
@@ -61,7 +61,7 @@ export const addMemberToOrganization = async (
         id: crypto.randomUUID(),
         organizationId,
         userId,
-        role,
+        roleId,
         createdAt: new Date(),
       });
     }
