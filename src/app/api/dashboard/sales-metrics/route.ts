@@ -5,6 +5,8 @@ import { db } from "@/db";
 import { clientsTable, salespersonTable, appointmentsTable, member } from "@/db/schema";
 import { eq, and, count, sql } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   try {
     const session = await auth.api.getSession({

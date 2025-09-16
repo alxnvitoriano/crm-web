@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { db } from "@/db";
-import { clientsTable, salespersonTable, member, usersTable } from "@/db/schema";
+import { clientsTable, salespersonTable, member } from "@/db/schema";
 import { eq, and, count, sql, desc } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
