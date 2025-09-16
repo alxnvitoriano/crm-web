@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp, uuid, unique } from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users_table", {
   id: text("id").primaryKey(),
@@ -127,6 +127,9 @@ export const clientsTable = pgTable("clients", {
   companyId: uuid("company_id")
     .notNull()
     .references(() => companyTable.id, { onDelete: "cascade" }),
+  salespersonId: uuid("salesperson_id")
+    .notNull()
+    .references(() => salespersonTable.id, { onDelete: "cascade" }),
   createAt: timestamp("create_at").defaultNow().notNull(),
   updateAt: timestamp("update_at")
     .defaultNow()
@@ -137,6 +140,10 @@ export const clientsTableRelations = relations(clientsTable, ({ many, one }) => 
   company: one(companyTable, {
     fields: [clientsTable.companyId],
     references: [companyTable.id],
+  }),
+  salesperson: one(salespersonTable, {
+    fields: [clientsTable.salespersonId],
+    references: [salespersonTable.id],
   }),
   appointments: many(appointmentsTable),
 }));
@@ -200,9 +207,29 @@ export const organizationRelations = relations(organization, ({ many }) => ({
 
 export type Organization = typeof organization.$inferSelect;
 
-export const role = pgEnum("role", ["member", "administrative", "post_sale", "owner", "admin"]);
+export const rolesTable = pgTable("roles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(), // Ex: "Administrativo", "Vendedor Pleno"
+  description: text("description"),
+  organizationId: text("organization_id").references(() => organization.id, {
+    onDelete: "cascade",
+  }), // Roles podem ser globais ou específicos da organização
+  isSystemRole: boolean("is_system_role").default(false).notNull(), // Roles do sistema (owner, admin) vs roles customizados
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
 
-export type Role = (typeof role.enumValues)[number];
+export const rolesTableRelations = relations(rolesTable, ({ many, one }) => ({
+  organization: one(organization, {
+    fields: [rolesTable.organizationId],
+    references: [organization.id],
+  }),
+  members: many(member),
+  rolesToPermissions: many(rolesToPermissionsTable),
+}));
 
 export const member = pgTable("member", {
   id: text("id").primaryKey(),
@@ -212,8 +239,14 @@ export const member = pgTable("member", {
   userId: text("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
-  role: text("role").default("member").notNull(),
+  roleId: uuid("role_id")
+    .notNull()
+    .references(() => rolesTable.id, { onDelete: "restrict" }), // restrict para não apagar um role em uso
   createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 export const memberRelations = relations(member, ({ one }) => ({
@@ -225,7 +258,28 @@ export const memberRelations = relations(member, ({ one }) => ({
     fields: [member.userId],
     references: [usersTable.id],
   }),
+  role: one(rolesTable, {
+    fields: [member.roleId],
+    references: [rolesTable.id],
+  }),
 }));
+
+// Tabela temporária para convites (até implementar sistema completo)
+export const invitationsTable = pgTable("invitations", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull(),
+  organizationId: text("organization_id").notNull(),
+  roleId: uuid("role_id").notNull(),
+  inviterId: text("inviter_id").notNull(), // Quem enviou o convite
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  status: text("status").notNull().default("pending"), // pending, accepted, expired, cancelled
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
 
 export type Member = typeof member.$inferSelect & {
   user: typeof usersTable.$inferSelect;
@@ -245,6 +299,54 @@ export const invitation = pgTable("invitation", {
     .references(() => usersTable.id, { onDelete: "cascade" }),
 });
 
+export const permissionsTable = pgTable("permissions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  // Ex: "create:client", "read:appointment", "delete:salesperson"
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  resource: text("resource").notNull(), // Ex: "client", "appointment", "salesperson"
+  action: text("action").notNull(), // Ex: "create", "read", "update", "delete"
+  isSystemPermission: boolean("is_system_permission").default(false).notNull(), // Permissões do sistema vs customizadas
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const permissionsTableRelations = relations(permissionsTable, ({ many }) => ({
+  rolesToPermissions: many(rolesToPermissionsTable),
+}));
+
+export const rolesToPermissionsTable = pgTable(
+  "roles_to_permissions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    roleId: uuid("role_id")
+      .notNull()
+      .references(() => rolesTable.id, { onDelete: "cascade" }),
+    permissionId: uuid("permission_id")
+      .notNull()
+      .references(() => permissionsTable.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    // Índice único para evitar duplicatas
+    uniqueRolePermission: unique("unique_role_permission").on(table.roleId, table.permissionId),
+  })
+);
+
+export const rolesToPermissionsTableRelations = relations(rolesToPermissionsTable, ({ one }) => ({
+  role: one(rolesTable, {
+    fields: [rolesToPermissionsTable.roleId],
+    references: [rolesTable.id],
+  }),
+  permission: one(permissionsTable, {
+    fields: [rolesToPermissionsTable.permissionId],
+    references: [permissionsTable.id],
+  }),
+}));
+
 export const schema = {
   usersTable,
   sessionsTable,
@@ -253,6 +355,12 @@ export const schema = {
   organization,
   member,
   invitation,
+  rolesTable,
+  permissionsTable,
+  rolesToPermissionsTable,
   organizationRelations,
   memberRelations,
+  rolesTableRelations,
+  permissionsTableRelations,
+  rolesToPermissionsTableRelations,
 };
