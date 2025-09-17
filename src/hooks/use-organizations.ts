@@ -28,16 +28,20 @@ export function useCreateOrganization() {
 
   return useMutation({
     mutationFn: async (data: { name: string; slug: string }) => {
-      const result = await authClient.organization.create({
-        name: data.name,
-        slug: data.slug,
+      const response = await fetch("/api/organizations/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
 
-      if (!result || result.error) {
-        throw new Error(result?.error?.message || "Falha na criação do time");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Falha na criação do time");
       }
 
-      return result;
+      return response.json();
     },
     onSuccess: () => {
       // Invalidar e refetch a lista de organizações
