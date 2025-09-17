@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { CreateOrganizationForm } from "./organization-form";
 import { usePermissions } from "@/hooks/use-permissions";
+import { authClient } from "@/lib/auth-client";
 
 // Tipos para os dados reais
 interface TeamMember {
@@ -139,9 +140,12 @@ export default function TeamClient({ organizations }: TeamClientProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Hook de permissões - por enquanto usando IDs fixos para desenvolvimento
+  // Dentro do componente:
+  const session = authClient.useSession();
+
+  // Hook de permissões com dados reais
   const { canRead } = usePermissions({
-    userId: "user-123", // TODO: Obter do contexto de autenticação
+    userId: session.data?.user?.id || "",
     organizationId: organizations[0]?.id || "",
   });
 

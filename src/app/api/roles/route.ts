@@ -18,8 +18,14 @@ export async function GET() {
     // Buscar organizações do usuário para obter o ID da organização
     const organizations = await getOrganizationRoles(session.user.id);
 
+    const allRoles = [];
+    for (const organization of organizations) {
+      const roles = await getOrganizationRoles(organization.id);
+      allRoles.push(...roles);
+    }
+
     return NextResponse.json({
-      roles: organizations,
+      roles: allRoles,
     });
   } catch (error) {
     console.error("Erro ao buscar roles:", error);
