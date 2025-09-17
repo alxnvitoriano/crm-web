@@ -2,8 +2,69 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { db } from "@/db";
-import { invitationsTable, member } from "@/db/schema";
+import { invitationsTable, member, rolesTable, organization } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+
+export async function GET(request: Request, { params }: { params: { token: string } }) {
+  try {
+    const { token } = params;
+
+    // Buscar convite pelo token com informações da organização e role
+    const invitation = await db.query.invitationsTable.findFirst({
+      where: eq(invitationsTable.token, token),
+      with: {
+        role: {
+          columns: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
+        organization: {
+          columns: {
+            id: true,
+            name: true,
+          },
+        },
+        inviter: {
+          columns: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!invitation) {
+      return NextResponse.json({ error: "Convite não encontrado ou expirado." }, { status: 404 });
+    }
+
+    // Verificar se o convite ainda é válido
+    if (invitation.status !== "pending") {
+      return NextResponse.json(
+        { error: `Convite já foi ${invitation.status === "accepted" ? "aceito" : "cancelado"}.` },
+        { status: 400 }
+      );
+    }
+
+    // Verificar se o convite expirou
+    if (new Date() > invitation.expiresAt) {
+      return NextResponse.json({ error: "Convite expirado." }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      email: invitation.email,
+      organizationName: invitation.organization?.name || "Organização",
+      roleName: invitation.role?.name || "Membro",
+      roleDescription: invitation.role?.description,
+      inviterName: invitation.inviter?.name || "Administrador",
+      expiresAt: invitation.expiresAt.toISOString(),
+    });
+  } catch (error) {
+    console.error("Erro ao validar convite:", error);
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request, { params }: { params: { token: string } }) {
   try {

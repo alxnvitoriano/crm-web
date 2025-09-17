@@ -48,19 +48,26 @@ export default function AcceptInvitePage() {
   };
 
   useEffect(() => {
-    // Por enquanto, vamos simular buscar dados do convite
-    // TODO: Criar endpoint para validar token e retornar dados do convite
-    const mockInvitationData: InvitationData = {
-      email: "usuario@exemplo.com",
-      organizationName: "Minha Empresa",
-      roleName: "Vendedor",
-      roleDescription: "Responsável por vendas e atendimento ao cliente",
-      inviterName: "João Silva",
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    const fetchInvitationData = async () => {
+      try {
+        const response = await fetch(`/api/invite/${token}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          setInvitationData(data);
+        } else {
+          const errorData = await response.json();
+          setError(errorData.error || "Convite não encontrado");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar dados do convite:", error);
+        setError("Erro ao carregar convite");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setInvitationData(mockInvitationData);
-    setLoading(false);
+    fetchInvitationData();
   }, [token]);
 
   const handleAcceptInvite = async () => {
@@ -97,24 +104,28 @@ export default function AcceptInvitePage() {
 
   const getRoleIcon = (roleName: string) => {
     const iconMap: Record<string, any> = {
-      Owner: Crown,
-      Admin: Shield,
-      "Gerente de Vendas": TrendingUp,
-      Vendedor: UserCheck,
+      "Gerente Geral": Crown,
       Administrativo: Shield,
       "Pós-Venda": Headphones,
+      "Gerente de Vendas": TrendingUp,
+      Vendedor: UserCheck,
+      // Manter compatibilidade com nomes antigos
+      Owner: Crown,
+      Admin: Shield,
     };
     return iconMap[roleName] || Users;
   };
 
   const getRoleColor = (roleName: string): string => {
     const colorMap: Record<string, string> = {
-      Owner: "bg-red-500",
-      Admin: "bg-blue-500",
-      "Gerente de Vendas": "bg-purple-500",
-      Vendedor: "bg-orange-500",
+      "Gerente Geral": "bg-red-500",
       Administrativo: "bg-green-500",
       "Pós-Venda": "bg-teal-500",
+      "Gerente de Vendas": "bg-purple-500",
+      Vendedor: "bg-orange-500",
+      // Manter compatibilidade com nomes antigos
+      Owner: "bg-red-500",
+      Admin: "bg-blue-500",
     };
     return colorMap[roleName] || "bg-gray-500";
   };

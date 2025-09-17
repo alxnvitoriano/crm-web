@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { rolesTable, member } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, or, isNull } from "drizzle-orm";
 
 export async function GET(request: Request, { params }: { params: { organizationId: string } }) {
   try {
@@ -27,8 +27,9 @@ export async function GET(request: Request, { params }: { params: { organization
     }
 
     // Buscar roles disponíveis para a organização
+    // Incluir roles do sistema (organizationId = null) e roles específicos da organização
     const roles = await db.query.rolesTable.findMany({
-      where: eq(rolesTable.organizationId, organizationId),
+      where: or(eq(rolesTable.organizationId, organizationId), isNull(rolesTable.organizationId)),
     });
 
     // Mapear roles com informações adicionais para exibição
@@ -53,24 +54,28 @@ export async function GET(request: Request, { params }: { params: { organization
 // Funções auxiliares para mapeamento visual dos roles
 function getRoleColor(roleName: string): string {
   const colorMap: Record<string, string> = {
-    Owner: "bg-red-500",
-    Admin: "bg-blue-500",
-    "Gerente de Vendas": "bg-purple-500",
-    Vendedor: "bg-orange-500",
+    "Gerente Geral": "bg-red-500",
     Administrativo: "bg-green-500",
     "Pós-Venda": "bg-teal-500",
+    "Gerente de Vendas": "bg-purple-500",
+    Vendedor: "bg-orange-500",
+    // Manter compatibilidade com nomes antigos
+    Owner: "bg-red-500",
+    Admin: "bg-blue-500",
   };
   return colorMap[roleName] || "bg-gray-500";
 }
 
 function getRoleIcon(roleName: string): string {
   const iconMap: Record<string, string> = {
-    Owner: "Crown",
-    Admin: "Shield",
-    "Gerente de Vendas": "TrendingUp",
-    Vendedor: "UserCheck",
+    "Gerente Geral": "Crown",
     Administrativo: "Shield",
     "Pós-Venda": "Headphones",
+    "Gerente de Vendas": "TrendingUp",
+    Vendedor: "UserCheck",
+    // Manter compatibilidade com nomes antigos
+    Owner: "Crown",
+    Admin: "Shield",
   };
   return iconMap[roleName] || "Users";
 }
