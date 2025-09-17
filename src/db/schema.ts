@@ -281,6 +281,21 @@ export const invitationsTable = pgTable("invitations", {
     .notNull(),
 });
 
+export const invitationsTableRelations = relations(invitationsTable, ({ one }) => ({
+  organization: one(organization, {
+    fields: [invitationsTable.organizationId],
+    references: [organization.id],
+  }),
+  role: one(rolesTable, {
+    fields: [invitationsTable.roleId],
+    references: [rolesTable.id],
+  }),
+  inviter: one(usersTable, {
+    fields: [invitationsTable.inviterId],
+    references: [usersTable.id],
+  }),
+}));
+
 export type Member = typeof member.$inferSelect & {
   user: typeof usersTable.$inferSelect;
 };
@@ -355,11 +370,13 @@ export const schema = {
   organization,
   member,
   invitation,
+  invitationsTable,
   rolesTable,
   permissionsTable,
   rolesToPermissionsTable,
   organizationRelations,
   memberRelations,
+  invitationsTableRelations,
   rolesTableRelations,
   permissionsTableRelations,
   rolesToPermissionsTableRelations,
