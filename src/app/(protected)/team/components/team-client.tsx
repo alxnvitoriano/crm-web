@@ -242,12 +242,11 @@ export default function TeamClient({ organizations }: TeamClientProps) {
                 <DropdownMenuLabel>Times disponíveis</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup>
-                  <DropdownMenuRadioItem value="top">
-                    {" "}
-                    {organizations.map((organization) => (
+                  {organizations.map((organization) => (
+                    <DropdownMenuRadioItem key={organization.id} value={organization.id}>
                       <Link href={`/team/teams/${organization.slug}`}>{organization.name}</Link>
-                    ))}
-                  </DropdownMenuRadioItem>
+                    </DropdownMenuRadioItem>
+                  ))}
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
