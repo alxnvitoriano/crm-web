@@ -1,5 +1,15 @@
 "use client";
 
+import * as React from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -224,12 +234,23 @@ export default function TeamClient({ organizations }: TeamClientProps) {
           </Dialog>
 
           <div className="flex flex-col gap-2">
-            <h2 className="text-2xl text-center font-bold">Times</h2>
-            {organizations.map((organization) => (
-              <Button variant="outline" key={organization.id} asChild>
-                <Link href={`/team/teams/${organization.slug}`}>{organization.name}</Link>
-              </Button>
-            ))}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">Times</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Times disponíveis</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup>
+                  <DropdownMenuRadioItem value="top">
+                    {" "}
+                    {organizations.map((organization) => (
+                      <Link href={`/team/teams/${organization.slug}`}>{organization.name}</Link>
+                    ))}
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
