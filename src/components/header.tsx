@@ -77,10 +77,8 @@ export default function Header() {
 
       <div className="flex items-center space-x-4">
         {/* Right Section */}
-        {/* Pass an empty array to OrganizationSwitcher for now; the switcher itself should fetch organizations internally */}
-        {!loadingOrganization && currentOrganization && (
-          <OrganizationSwitcher organizations={currentOrganization ? [currentOrganization] : []} />
-        )}
+        {/* OrganizationSwitcher now fetches organizations internally */}
+        <OrganizationSwitcher />
         {/* Theme Toggle */}
         <Button
           variant="ghost"

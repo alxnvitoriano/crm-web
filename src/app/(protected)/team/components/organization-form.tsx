@@ -13,18 +13,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { authClient } from "@/lib/auth-client";
-import { toast } from "sonner";
-import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useCreateOrganization } from "@/hooks/use-organizations";
 
 const formSchema = z.object({
   name: z.string().min(2).max(50),
   slug: z.string().min(2).max(50),
 });
 
-export function CreateOrganizationForm() {
-  const [isLoading, setIsLoading] = useState(false);
+export function CreateOrganizationForm({ onSuccess }: { onSuccess?: () => void }) {
+  const createOrganization = useCreateOrganization();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -34,19 +32,12 @@ export function CreateOrganizationForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      setIsLoading(true);
-      await authClient.organization.create({
-        name: values.name,
-        slug: values.slug,
-      });
-      toast.success("Time criado com sucesso");
-    } catch (error) {
-      console.error(error);
-      toast.error("Falha na criação do time");
-    } finally {
-      setIsLoading(false);
-    }
+    createOrganization.mutate(values, {
+      onSuccess: () => {
+        form.reset();
+        onSuccess?.();
+      },
+    });
   }
 
   return (
@@ -78,8 +69,12 @@ export function CreateOrganizationForm() {
             </FormItem>
           )}
         />
-        <Button disabled={isLoading} type="submit">
-          {isLoading ? <Loader2 className="size-4 animate-spin" /> : "Criar time"}
+        <Button disabled={createOrganization.isPending} type="submit">
+          {createOrganization.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            "Criar time"
+          )}
         </Button>
       </form>
     </Form>

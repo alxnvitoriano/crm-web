@@ -12,24 +12,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { CreateOrganizationForm } from "./components/organization-form";
 import { OrganizationSwitcher } from "./components/organization-switcher";
-import { getOrganizations } from "server/organization";
-import React from "react";
-
-type OrganizationType = Awaited<ReturnType<typeof getOrganizations>>;
+import React, { useState } from "react";
 
 interface TeamPageClientProps {
-  organizations: OrganizationType;
   setHeaderRight?: (node: React.ReactNode) => void;
 }
 
-export function TeamPageClient({ organizations, setHeaderRight }: TeamPageClientProps) {
+export function TeamPageClient({ setHeaderRight }: TeamPageClientProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   // quando carregar a página, injeta os botões no header global
   React.useEffect(() => {
     if (setHeaderRight) {
       setHeaderRight(
         <div className="flex items-center gap-2">
-          <OrganizationSwitcher organizations={organizations} />
-          <Dialog>
+          <OrganizationSwitcher />
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">Criar Time</Button>
             </DialogTrigger>
@@ -38,13 +35,13 @@ export function TeamPageClient({ organizations, setHeaderRight }: TeamPageClient
                 <DialogTitle>Criar Time</DialogTitle>
                 <DialogDescription>Criação do time iniciada!</DialogDescription>
               </DialogHeader>
-              <CreateOrganizationForm />
+              <CreateOrganizationForm onSuccess={() => setIsDialogOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>
       );
     }
-  }, [organizations, setHeaderRight]);
+  }, [setHeaderRight, isDialogOpen]);
 
   return (
     <div className="p-6">
