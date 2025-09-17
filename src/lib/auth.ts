@@ -96,7 +96,7 @@ export const auth = betterAuth({
 
         try {
           const result = await resend.emails.send({
-            from: "CRM <crm-invitation@crm.com>",
+            from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
             to: data.email,
             subject: "Você foi convidado(a) a entrar em um time.",
             html: `

@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       // Só tenta enviar email se a chave do Resend estiver configurada
       if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== "dummy-key") {
         const { error: emailError } = await resend.emails.send({
-          from: "CRM Sistema <noreply@crm-sistema.com>",
+          from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
           to: [email],
           subject: `Convite para ${role.name} - ${session.user.name}`,
           html: `
