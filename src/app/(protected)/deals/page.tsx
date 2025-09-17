@@ -31,63 +31,6 @@ interface Deal {
   description?: string;
 }
 
-const mockDeals: Deal[] = [
-  {
-    id: 1,
-    title: "Sistema de Gestão Empresarial",
-    client: "Ana Silva",
-    clientAvatar: "/professional-woman-diverse.png",
-    value: 45000,
-    stage: "lead",
-    priority: "alta",
-    dueDate: "2024-02-15",
-    createdAt: "2024-01-10",
-    description: "Desenvolvimento de sistema completo de gestão",
-  },
-  {
-    id: 2,
-    title: "Consultoria em Marketing Digital",
-    client: "Carlos Santos",
-    clientAvatar: "/professional-man.png",
-    value: 25000,
-    stage: "negociacao",
-    priority: "media",
-    dueDate: "2024-02-20",
-    createdAt: "2024-01-12",
-  },
-  {
-    id: 3,
-    title: "Desenvolvimento de E-commerce",
-    client: "Maria Oliveira",
-    clientAvatar: "/professional-user.png",
-    value: 80000,
-    stage: "negociacao",
-    priority: "alta",
-    dueDate: "2024-02-25",
-    createdAt: "2024-01-08",
-  },
-  {
-    id: 4,
-    title: "Automação de Processos",
-    client: "João Costa",
-    value: 35000,
-    stage: "fechado",
-    priority: "media",
-    dueDate: "2024-01-30",
-    createdAt: "2024-01-05",
-  },
-  {
-    id: 5,
-    title: "Treinamento em Vendas",
-    client: "Fernanda Lima",
-    value: 15000,
-    stage: "lead",
-    priority: "baixa",
-    dueDate: "2024-03-01",
-    createdAt: "2024-01-15",
-  },
-];
-
 const stages = [
   {
     id: "lead",
@@ -116,7 +59,7 @@ const priorityColors = {
 };
 
 export default function DealsPage() {
-  const [deals, setDeals] = useState<Deal[]>(mockDeals);
+  const [deals, setDeals] = useState<Deal[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null);
