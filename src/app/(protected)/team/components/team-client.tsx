@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { CreateOrganizationForm } from "./organization-form";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useOrganizations } from "@/hooks/use-organizations";
 
 // Tipos para os dados reais
 interface TeamMember {
@@ -75,17 +76,6 @@ const systemRoleDisplay = {
   Administrativo: { color: "bg-green-500", icon: Shield },
   "Pós-Venda": { color: "bg-teal-500", icon: Headphones },
 };
-
-interface TeamClientProps {
-  organizations: Array<{
-    id: string;
-    name: string;
-    slug: string | null;
-    createdAt: Date;
-    logo: string | null;
-    metadata: string | null;
-  }>;
-}
 
 // Função para buscar membros da organização atual
 async function fetchTeamMembers(organizationId: string): Promise<TeamMember[]> {
@@ -131,13 +121,15 @@ async function fetchRoles(): Promise<RoleInfo[]> {
   }
 }
 
-export default function TeamClient({ organizations }: TeamClientProps) {
+export default function TeamClient() {
+  const { data: organizations = [], isLoading: organizationsLoading } = useOrganizations();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [roles, setRoles] = useState<RoleInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Hook de permissões - por enquanto usando IDs fixos para desenvolvimento
   const { canRead } = usePermissions({
@@ -148,6 +140,11 @@ export default function TeamClient({ organizations }: TeamClientProps) {
   // Carregar dados reais
   useEffect(() => {
     const loadData = async () => {
+      // Aguardar organizações carregarem
+      if (organizationsLoading) {
+        return;
+      }
+
       if (!canRead || !canRead("user")) {
         setLoading(false);
         return;
@@ -175,7 +172,7 @@ export default function TeamClient({ organizations }: TeamClientProps) {
     };
 
     loadData();
-  }, [organizations, canRead]);
+  }, [organizations, organizationsLoading, canRead]);
 
   // Filtrar membros da equipe
   const filteredMembers = members.filter((member) => {
@@ -206,7 +203,7 @@ export default function TeamClient({ organizations }: TeamClientProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">Criar Time</Button>
             </DialogTrigger>
@@ -215,7 +212,7 @@ export default function TeamClient({ organizations }: TeamClientProps) {
                 <DialogTitle>Criar Time</DialogTitle>
                 <DialogDescription>Criação do time iniciada!</DialogDescription>
               </DialogHeader>
-              <CreateOrganizationForm />
+              <CreateOrganizationForm onSuccess={() => setIsDialogOpen(false)} />
             </DialogContent>
           </Dialog>
 
