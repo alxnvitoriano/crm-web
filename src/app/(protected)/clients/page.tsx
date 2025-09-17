@@ -220,6 +220,7 @@ export default function ClientsPage() {
         </PermissionButton>
       </div>
 
+      {/* TODO: Implementar filtros e busca */}
       {/* Filters and Search */}
       <Card>
         <CardHeader>
