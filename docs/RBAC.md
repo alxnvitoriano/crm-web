@@ -25,43 +25,112 @@ Organization
 
 ## Roles Pré-definidos
 
-### 1. Owner
+### 1. Gerente Geral
 
-- **Descrição**: Proprietário da organização com acesso total
-- **Permissões**: Todas as permissões do sistema
-- **Uso**: Acesso completo a todas as funcionalidades
+- **Descrição**: Acesso total a todas as funcionalidades e etapas do processo de vendas
+- **Permissões**: Todas as permissões do sistema + todas as etapas do processo de vendas (1-8)
+- **Etapas do Processo**: Acesso completo a todas as 8 etapas
+- **Uso**: Controle total da organização e processo de vendas
 
-### 2. Admin
+### 2. Administrativo
 
-- **Descrição**: Administrador com acesso total exceto gestão de organizações
-- **Permissões**: Todas exceto gestão de organizações
-- **Uso**: Gerenciamento completo da organização
+- **Descrição**: Acesso às etapas 4 a 7 do processo de vendas
+- **Permissões**: Etapas 4-7 (Negociação, Fechamento, Contrato, Pagamento) + permissões básicas
+- **Etapas do Processo**:
+  - ✅ **Editável**: Etapas 4, 5, 6, 7
+  - ❌ **Sem acesso**: Etapas 1, 2, 3, 8
+- **Uso**: Processamento de negócios fechados e administrativo
 
-### 3. Gerente de Vendas
+### 3. Pós-Venda
 
-- **Descrição**: Gerente de vendas com acesso a equipe e relatórios
-- **Permissões**: Clientes, vendedores, agendamentos, relatórios
-- **Uso**: Gerenciamento da equipe de vendas
+- **Descrição**: Acesso somente à etapa 8 (Pós-venda) e visualização das outras etapas
+- **Permissões**: Etapa 8 (Pós-venda) + visualização das outras etapas
+- **Etapas do Processo**:
+  - ✅ **Editável**: Etapa 8 (Pós-venda)
+  - 👁️ **Visualização**: Etapas 1, 2, 3, 4, 5, 6, 7
+- **Uso**: Atendimento pós-venda e suporte ao cliente
 
-### 4. Vendedor
+### 4. Gerente de Vendas
 
-- **Descrição**: Vendedor com acesso limitado aos próprios clientes
-- **Permissões**: Clientes (criar, ler, atualizar), agendamentos
-- **Uso**: Operações básicas de vendas
+- **Descrição**: Acesso a vendedores da equipe e todas as etapas do processo (1-8)
+- **Permissões**: Todas as etapas do processo + gestão de equipe + relatórios
+- **Etapas do Processo**: Acesso completo a todas as 8 etapas
+- **Uso**: Gerenciamento da equipe de vendas e acompanhamento do processo
 
-### 5. Administrativo
+### 5. Vendedor
 
-- **Descrição**: Funcionário administrativo com acesso a dados
-- **Permissões**: Leitura e atualização de dados, relatórios
-- **Uso**: Suporte administrativo
-
-### 6. Pós-Venda
-
-- **Descrição**: Equipe de pós-venda com acesso limitado
-- **Permissões**: Clientes (ler, atualizar), agendamentos
-- **Uso**: Atendimento pós-venda
+- **Descrição**: Acesso editável às etapas 1-4 e 8, visualização das etapas 5-7
+- **Permissões**: Etapas 1-4 e 8 (editável) + visualização das etapas 5-7
+- **Etapas do Processo**:
+  - ✅ **Editável**: Etapas 1, 2, 3, 4, 8
+  - 👁️ **Visualização**: Etapas 5, 6, 7
+- **Uso**: Operações de vendas e acompanhamento pós-venda
 
 ## Permissões Disponíveis
+
+### Etapas do Processo de Vendas
+
+#### Etapa 1 - Primeiro Contato/Lead
+
+- `create:stage_1` - Criar leads e primeiro contato
+- `read:stage_1` - Visualizar leads e primeiro contato
+- `update:stage_1` - Editar leads e primeiro contato
+- `delete:stage_1` - Excluir leads e primeiro contato
+
+#### Etapa 2 - Qualificação
+
+- `create:stage_2` - Criar qualificação de leads
+- `read:stage_2` - Visualizar qualificação de leads
+- `update:stage_2` - Editar qualificação de leads
+- `delete:stage_2` - Excluir qualificação de leads
+
+#### Etapa 3 - Proposta
+
+- `create:stage_3` - Criar propostas comerciais
+- `read:stage_3` - Visualizar propostas comerciais
+- `update:stage_3` - Editar propostas comerciais
+- `delete:stage_3` - Excluir propostas comerciais
+
+#### Etapa 4 - Negociação
+
+- `create:stage_4` - Criar negociações
+- `read:stage_4` - Visualizar negociações
+- `update:stage_4` - Editar negociações
+- `delete:stage_4` - Excluir negociações
+
+#### Etapa 5 - Fechamento
+
+- `create:stage_5` - Criar fechamentos de vendas
+- `read:stage_5` - Visualizar fechamentos de vendas
+- `update:stage_5` - Editar fechamentos de vendas
+- `delete:stage_5` - Excluir fechamentos de vendas
+
+#### Etapa 6 - Contrato
+
+- `create:stage_6` - Criar contratos
+- `read:stage_6` - Visualizar contratos
+- `update:stage_6` - Editar contratos
+- `delete:stage_6` - Excluir contratos
+
+#### Etapa 7 - Pagamento
+
+- `create:stage_7` - Criar registros de pagamento
+- `read:stage_7` - Visualizar registros de pagamento
+- `update:stage_7` - Editar registros de pagamento
+- `delete:stage_7` - Excluir registros de pagamento
+
+#### Etapa 8 - Pós-venda
+
+- `create:stage_8` - Criar registros de pós-venda
+- `read:stage_8` - Visualizar registros de pós-venda
+- `update:stage_8` - Editar registros de pós-venda
+- `delete:stage_8` - Excluir registros de pós-venda
+
+### Permissões Especiais
+
+- `manage:team` - Gerenciar equipe de vendas
+- `view:all_stages` - Visualizar todas as etapas do processo
+- `manage:organization` - Gerenciar organização
 
 ### Clientes
 
@@ -146,6 +215,48 @@ function MyComponent() {
 }
 ```
 
+#### useSalesStagePermissions
+
+```tsx
+import { useSalesStagePermissions } from "@/hooks/use-sales-stage-permissions";
+import { SALES_STAGES } from "@/lib/rbac/sales-process-permissions";
+
+function SalesProcessComponent() {
+  const {
+    canCreateStage,
+    canReadStage,
+    canUpdateStage,
+    canDeleteStage,
+    getAccessibleStages,
+    loading,
+  } = useSalesStagePermissions({
+    userId: "user-123",
+    organizationId: "org-456",
+  });
+
+  if (loading) return <div>Carregando...</div>;
+
+  const { editable, viewOnly } = getAccessibleStages();
+
+  return (
+    <div>
+      <h2>Etapas Editáveis</h2>
+      {editable.map((stage) => (
+        <div key={stage}>
+          {canCreateStage(stage) && <button>Criar {stage}</button>}
+          {canUpdateStage(stage) && <button>Editar {stage}</button>}
+        </div>
+      ))}
+
+      <h2>Etapas Apenas Visualização</h2>
+      {viewOnly.map((stage) => (
+        <div key={stage}>{canReadStage(stage) && <span>Visualizar {stage}</span>}</div>
+      ))}
+    </div>
+  );
+}
+```
+
 #### useHasPermission
 
 ```tsx
@@ -173,6 +284,59 @@ function MyComponent() {
       <div>Conteúdo protegido</div>
     </PermissionGuard>
   );
+}
+```
+
+#### SalesStageGuard
+
+```tsx
+import { SalesStageGuard } from "@/components/rbac/sales-stage-guard";
+import { SALES_STAGES } from "@/lib/rbac/sales-process-permissions";
+
+function SalesProcessComponent() {
+  return (
+    <SalesStageGuard
+      userId="user-123"
+      organizationId="org-456"
+      stage={SALES_STAGES.STAGE_1}
+      action="create"
+      fallback={<div>Você não tem permissão para criar leads</div>}
+    >
+      <div>Formulário de criação de lead</div>
+    </SalesStageGuard>
+  );
+}
+```
+
+#### SalesStageButton
+
+```tsx
+import { SalesStageButton } from "@/components/rbac/sales-stage-guard";
+import { SALES_STAGES } from "@/lib/rbac/sales-process-permissions";
+
+function SalesProcessComponent() {
+  return (
+    <SalesStageButton
+      userId="user-123"
+      organizationId="org-456"
+      stage={SALES_STAGES.STAGE_2}
+      action="update"
+      onClick={() => console.log("Atualizando qualificação")}
+      className="btn btn-primary"
+    >
+      Atualizar Qualificação
+    </SalesStageButton>
+  );
+}
+```
+
+#### AccessibleStagesInfo
+
+```tsx
+import { AccessibleStagesInfo } from "@/components/rbac/sales-stage-guard";
+
+function UserPermissionsComponent() {
+  return <AccessibleStagesInfo userId="user-123" organizationId="org-456" />;
 }
 ```
 
