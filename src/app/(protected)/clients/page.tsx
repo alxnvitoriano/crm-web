@@ -45,6 +45,7 @@ import {
 import { usePermissions } from "@/hooks/use-permissions";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 interface Client {
   id: string; // UUID do banco

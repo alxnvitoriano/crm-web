@@ -7,6 +7,7 @@ import { Sidebar } from "./dashboard/_components/sidebar";
 // import { getOrganizations } from "server/organization"; // No longer needed here as it's a client component now
 // import { organization } from "@/db/schema"; // No longer needed here
 import { OrganizationProvider } from "@/lib/use-organization-context";
+import { ClientOnly } from "@/components/client-only";
 
 // export const dynamic = "force-dynamic"; // No longer needed here as it's a client component now
 
@@ -21,17 +22,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen bg-background">
-      <OrganizationProvider>
-        <SidebarProvider>
-          <Sidebar />
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Organizations will be fetched inside OrganizationProvider */}
-            <Header />
-            {/* Pass an empty array initially, or fetch in Header itself if needed */}
-            <main className="flex-1 overflow-y-auto p-6">{children}</main>
-          </div>
-        </SidebarProvider>
-      </OrganizationProvider>
+      <ClientOnly
+        fallback={<div className="flex-1 flex items-center justify-center">Carregando...</div>}
+      >
+        <OrganizationProvider>
+          <SidebarProvider>
+            <Sidebar />
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Organizations will be fetched inside OrganizationProvider */}
+              <Header />
+              {/* Pass an empty array initially, or fetch in Header itself if needed */}
+              <main className="flex-1 overflow-y-auto p-6">{children}</main>
+            </div>
+          </SidebarProvider>
+        </OrganizationProvider>
+      </ClientOnly>
     </div>
   );
 }

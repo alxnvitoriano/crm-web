@@ -44,6 +44,9 @@ interface SalesRanking {
   clientsCount: number;
 }
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 const DashboardPage = () => {
   // Changed to client component
   const { currentOrganization } = useOrganizationContext(); // Assuming this context provides the current organization ID
