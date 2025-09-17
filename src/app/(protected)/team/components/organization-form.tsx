@@ -17,6 +17,7 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(2).max(50),
@@ -25,6 +26,7 @@ const formSchema = z.object({
 
 export function CreateOrganizationForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -41,6 +43,7 @@ export function CreateOrganizationForm() {
         slug: values.slug,
       });
       toast.success("Time criado com sucesso");
+      router.refresh(); // Atualiza a página para mostrar o novo time
     } catch (error) {
       console.error(error);
       toast.error("Falha na criação do time");
