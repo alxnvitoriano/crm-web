@@ -25,6 +25,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, Users, Percent, Wallet, DollarSign } from "lucide-react";
 import { useOrganizationContext } from "@/lib/use-organization-context"; // Assuming this context exists or will be created
+import { redirect } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 interface SalesMetrics {
   leadsReceivedBySalesperson: Array<{
@@ -48,6 +50,11 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const DashboardPage = () => {
+  const session = authClient.useSession();
+  if (!session) {
+    redirect("/authentication");
+  }
+
   const { currentOrganization } = useOrganizationContext(); // Assuming this context provides the current organization ID
   const organizationId = currentOrganization?.id;
 
