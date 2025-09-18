@@ -54,9 +54,6 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
 export const useOrganizationContext = () => {
   const context = useContext(OrganizationContext);
   if (context === undefined) {
-    return {
-      currentOrganization: null,
-    };
     throw new Error("useOrganizationContext must be used within an OrganizationProvider");
   }
   return context;
