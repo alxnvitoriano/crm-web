@@ -132,7 +132,7 @@ export default function TeamClient() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Hook de permissões - por enquanto usando IDs fixos para desenvolvimento
-  const { canRead } = usePermissions({
+  const { canRead, loading: permissionsLoading } = usePermissions({
     userId: "user-123", // TODO: Obter do contexto de autenticação
     organizationId: organizations[0]?.id || "",
   });
@@ -140,8 +140,8 @@ export default function TeamClient() {
   // Carregar dados reais
   useEffect(() => {
     const loadData = async () => {
-      // Aguardar organizações carregarem
-      if (organizationsLoading) {
+      // Aguardar organizações e permissões carregarem
+      if (organizationsLoading || permissionsLoading) {
         return;
       }
 
@@ -172,7 +172,7 @@ export default function TeamClient() {
     };
 
     loadData();
-  }, [organizations, organizationsLoading, canRead]);
+  }, [organizations, organizationsLoading, permissionsLoading]); // Removido canRead das dependências
 
   // Filtrar membros da equipe
   const filteredMembers = members.filter((member) => {

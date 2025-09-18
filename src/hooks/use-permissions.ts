@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   checkPermissionServer,
   checkAnyPermissionServer,
@@ -60,40 +60,61 @@ export function usePermissions({
     loadPermissions();
   }, [userId, organizationId]);
 
-  const checkPermission = (permissionSlug: string): boolean => {
-    if (!permissions) return false;
-    return permissions.permissions.some((p) => p.slug === permissionSlug);
-  };
+  const checkPermission = useCallback(
+    (permissionSlug: string): boolean => {
+      if (!permissions) return false;
+      return permissions.permissions.some((p) => p.slug === permissionSlug);
+    },
+    [permissions]
+  );
 
-  const checkAnyPermission = (permissionSlugs: string[]): boolean => {
-    if (!permissions) return false;
-    return permissionSlugs.some((slug) => checkPermission(slug));
-  };
+  const checkAnyPermission = useCallback(
+    (permissionSlugs: string[]): boolean => {
+      if (!permissions) return false;
+      return permissionSlugs.some((slug) => checkPermission(slug));
+    },
+    [permissions, checkPermission]
+  );
 
-  const canCreate = (resource: string): boolean => {
-    return checkPermission(`create:${resource}`);
-  };
+  const canCreate = useCallback(
+    (resource: string): boolean => {
+      return checkPermission(`create:${resource}`);
+    },
+    [checkPermission]
+  );
 
-  const canRead = (resource: string): boolean => {
-    return checkPermission(`read:${resource}`);
-  };
+  const canRead = useCallback(
+    (resource: string): boolean => {
+      return checkPermission(`read:${resource}`);
+    },
+    [checkPermission]
+  );
 
-  const canUpdate = (resource: string): boolean => {
-    return checkPermission(`update:${resource}`);
-  };
+  const canUpdate = useCallback(
+    (resource: string): boolean => {
+      return checkPermission(`update:${resource}`);
+    },
+    [checkPermission]
+  );
 
-  const canDelete = (resource: string): boolean => {
-    return checkPermission(`delete:${resource}`);
-  };
+  const canDelete = useCallback(
+    (resource: string): boolean => {
+      return checkPermission(`delete:${resource}`);
+    },
+    [checkPermission]
+  );
 
-  const canManage = (resource: string): boolean => {
-    return checkAnyPermission([
-      `create:${resource}`,
-      `read:${resource}`,
-      `update:${resource}`,
-      `delete:${resource}`,
-    ]);
-  };
+  const canManage = useCallback(
+    (resource: string): boolean => {
+      return checkAnyPermission([
+        `create:${resource}`,
+        `read:${resource}`,
+        `update:${resource}`,
+        `delete:${resource}`,
+      ]);
+    },
+    [checkAnyPermission]
+  );
 
   return {
     permissions,

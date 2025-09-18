@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { authClient } from "@/lib/auth-client";
 import {
   Select,
@@ -15,7 +16,8 @@ import { Loader2 } from "lucide-react";
 export function OrganizationSwitcher() {
   const { data: organizations = [], isLoading } = useOrganizations();
   const { data: activeOrganization } = authClient.useActiveOrganization();
-  const handleChangeOrganization = async (organizationId: string) => {
+
+  const handleChangeOrganization = useCallback(async (organizationId: string) => {
     try {
       const { error } = await authClient.organization.setActive({
         organizationId,
@@ -23,7 +25,6 @@ export function OrganizationSwitcher() {
 
       if (error) {
         toast.error("Falha na troca do time.");
-
         return;
       }
       toast.success("Time trocado com sucesso.");
@@ -31,7 +32,7 @@ export function OrganizationSwitcher() {
       toast.error("Falha na troca do time.");
       console.error(error);
     }
-  };
+  }, []);
 
   if (isLoading) {
     return (

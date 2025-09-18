@@ -20,28 +20,35 @@ interface TeamPageClientProps {
 
 export function TeamPageClient({ setHeaderRight }: TeamPageClientProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Memoizar o JSX para evitar recriações desnecessárias
+  const headerContent = React.useMemo(
+    () => (
+      <div className="flex items-center gap-2">
+        <OrganizationSwitcher />
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline">Criar Time</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Criar Time</DialogTitle>
+              <DialogDescription>Criação do time iniciada!</DialogDescription>
+            </DialogHeader>
+            <CreateOrganizationForm onSuccess={() => setIsDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
+      </div>
+    ),
+    [isDialogOpen]
+  );
+
   // quando carregar a página, injeta os botões no header global
   React.useEffect(() => {
     if (setHeaderRight) {
-      setHeaderRight(
-        <div className="flex items-center gap-2">
-          <OrganizationSwitcher />
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">Criar Time</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Criar Time</DialogTitle>
-                <DialogDescription>Criação do time iniciada!</DialogDescription>
-              </DialogHeader>
-              <CreateOrganizationForm onSuccess={() => setIsDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
-        </div>
-      );
+      setHeaderRight(headerContent);
     }
-  }, [setHeaderRight, isDialogOpen]);
+  }, [setHeaderRight, headerContent]);
 
   return (
     <div className="p-6">
