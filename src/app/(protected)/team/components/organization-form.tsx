@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { authClient } from "@/lib/auth-client";
+import { createOrganization } from "@/actions/create-organization";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -38,12 +38,8 @@ export function CreateOrganizationForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsLoading(true);
-      await authClient.organization.create({
-        name: values.name,
-        slug: values.slug,
-      });
+      await createOrganization(values.name, values.slug);
       toast.success("Time criado com sucesso");
-      router.refresh(); // Atualiza a página para mostrar o novo time
     } catch (error) {
       console.error(error);
       toast.error("Falha na criação do time");
