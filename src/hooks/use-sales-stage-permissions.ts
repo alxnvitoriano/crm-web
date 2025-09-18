@@ -13,7 +13,6 @@ interface UseSalesStagePermissionsReturn {
   loading: boolean;
   error: string | null;
   canCreateStage: (stage: SalesStage) => boolean;
-  canReadStage: (stage: SalesStage) => boolean;
   canUpdateStage: (stage: SalesStage) => boolean;
   canDeleteStage: (stage: SalesStage) => boolean;
   canManageStage: (stage: SalesStage) => boolean;
@@ -41,11 +40,6 @@ export function useSalesStagePermissions({
     return permissions.permissions.some((p) => p.slug === `create:${stage}`);
   };
 
-  const canReadStage = (stage: SalesStage): boolean => {
-    if (!permissions) return false;
-    return permissions.permissions.some((p) => p.slug === `read:${stage}`);
-  };
-
   const canUpdateStage = (stage: SalesStage): boolean => {
     if (!permissions) return false;
     return permissions.permissions.some((p) => p.slug === `update:${stage}`);
@@ -57,9 +51,7 @@ export function useSalesStagePermissions({
   };
 
   const canManageStage = (stage: SalesStage): boolean => {
-    return (
-      canCreateStage(stage) && canReadStage(stage) && canUpdateStage(stage) && canDeleteStage(stage)
-    );
+    return canCreateStage(stage) && canUpdateStage(stage) && canDeleteStage(stage);
   };
 
   const hasStagePermission = (
@@ -78,12 +70,11 @@ export function useSalesStagePermissions({
 
     Object.values(SALES_STAGES).forEach((stage) => {
       const canEdit = canCreateStage(stage) && canUpdateStage(stage);
-      const canView = canReadStage(stage);
 
       if (canEdit) {
         editable.push(stage);
-      } else if (canView) {
-        viewOnly.push(stage);
+      } else {
+        return;
       }
     });
 
@@ -94,7 +85,6 @@ export function useSalesStagePermissions({
     loading,
     error,
     canCreateStage,
-    canReadStage,
     canUpdateStage,
     canDeleteStage,
     canManageStage,

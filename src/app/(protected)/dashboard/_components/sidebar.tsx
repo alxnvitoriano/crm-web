@@ -211,7 +211,7 @@ export function Sidebar({ className }: SidebarProps) {
             <SidebarMenu>
               <SidebarMenuItem>
                 <DropdownMenu>
-                  <DropdownMenuTrigger>
+                  <DropdownMenuTrigger asChild>
                     <SidebarMenuButton className="flex items-center gap-2" isActive={true}>
                       <Avatar className="h-10 w-10">
                         <AvatarFallback className="flex items-center justify-center">

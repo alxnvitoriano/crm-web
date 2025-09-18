@@ -187,9 +187,8 @@ export function TeamPageClient({ organizations }: TeamPageClientProps) {
                           {new Date(member.createdAt).toLocaleDateString("pt-BR")}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="outline" size="sm">
-                            Editar
-                          </Button>
+                          <Button variant="outline" size="sm"></Button>
+                          Editar
                         </TableCell>
                       </TableRow>
                     );

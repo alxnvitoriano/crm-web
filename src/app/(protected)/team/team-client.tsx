@@ -133,7 +133,7 @@ async function fetchRoles(): Promise<RoleInfo[]> {
   }
 }
 
-export default async function TeamClient({ organizations }: TeamClientProps) {
+export default function TeamClient({ organizations }: TeamClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -145,19 +145,16 @@ export default async function TeamClient({ organizations }: TeamClientProps) {
   const session = authClient.useSession();
 
   // Hook de permissões com dados reais
-  const { canRead } = usePermissions({
+  const { permissions } = usePermissions({
     userId: session.data?.user?.id || "",
     organizationId: organizations[0]?.id || "",
   });
 
   // Carregar dados reais
   useEffect(() => {
-    const loadData = async () => {
-      if (!canRead || !canRead("user")) {
-        setLoading(false);
-        return;
-      }
+    if (loading) return; // Evitar múltiplas execuções
 
+    const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
@@ -180,7 +177,7 @@ export default async function TeamClient({ organizations }: TeamClientProps) {
     };
 
     loadData();
-  }, [organizations, canRead]);
+  }, [organizations, permissions, loading]);
 
   // Filtrar membros da equipe
   const filteredMembers = members.filter((member) => {

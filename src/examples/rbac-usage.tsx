@@ -6,7 +6,6 @@ import {
   PermissionInfo,
 } from "@/components/rbac/permission-guard";
 import { usePermissions } from "@/hooks/use-permissions";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Exemplo de uso do sistema RBAC
@@ -15,7 +14,7 @@ export function RBACUsageExample() {
   const userId = "user-123";
   const organizationId = "org-456";
 
-  const { permissions, loading, canCreate, canRead, canUpdate, canDelete } = usePermissions({
+  const { permissions, loading, canCreate, canUpdate, canDelete } = usePermissions({
     userId,
     organizationId,
   });
@@ -142,13 +141,6 @@ export function RBACUsageExample() {
             <span>Pode criar clientes:</span>
             <span className={canCreate("client") ? "text-green-600" : "text-red-600"}>
               {canCreate("client") ? "✅ Sim" : "❌ Não"}
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <span>Pode ler relatórios:</span>
-            <span className={canRead("reports") ? "text-green-600" : "text-red-600"}>
-              {canRead("reports") ? "✅ Sim" : "❌ Não"}
             </span>
           </div>
 

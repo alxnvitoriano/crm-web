@@ -1,11 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  checkPermissionServer,
-  checkAnyPermissionServer,
-  getUserPermissionsServer,
-} from "@/actions/permissions";
+import { checkPermissionServer, checkAnyPermissionServer } from "@/actions/permissions";
 import type { UserPermissions } from "@/lib/rbac/permissions";
 
 interface UsePermissionsOptions {
@@ -20,7 +16,6 @@ interface UsePermissionsReturn {
   hasPermission: (permissionSlug: string) => boolean;
   hasAnyPermission: (permissionSlugs: string[]) => boolean;
   canCreate: (resource: string) => boolean;
-  canRead: (resource: string) => boolean;
   canUpdate: (resource: string) => boolean;
   canDelete: (resource: string) => boolean;
   canManage: (resource: string) => boolean;
@@ -37,27 +32,41 @@ export function usePermissions({
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    if (!userId || !organizationId) {
-      setLoading(false);
-      return;
-    }
+    // Evita loop: se não houver IDs, não altera estados aqui
+    if (!userId || !organizationId) return;
 
+    let aborted = false;
     const loadPermissions = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const userPermissions = await getUserPermissionsServer(userId, organizationId);
-        setPermissions(userPermissions);
+        // Buscar via endpoint REST para evitar hidratação mista
+        const res = await fetch(
+          `/api/permissions/user?userId=${encodeURIComponent(userId)}&organizationId=${encodeURIComponent(
+            organizationId
+          )}`,
+          { cache: "no-store", credentials: "include" }
+        );
+        const userPermissions = await res.json();
+        if (!aborted) setPermissions(userPermissions);
       } catch (err) {
         console.error("Erro ao carregar permissões:", err);
-        setError(err instanceof Error ? err.message : "Erro desconhecido");
+        if (!aborted) setError(err instanceof Error ? err.message : "Erro desconhecido");
       } finally {
-        setLoading(false);
+        if (!aborted) setLoading(false);
       }
     };
 
     loadPermissions();
+
+    return () => {
+      // Evitar setState após unmount
+      // e durante mudanças rápidas de org/usuário
+      // que poderiam causar loops de atualização
+      // devido a race conditions.
+      aborted = true;
+    };
   }, [userId, organizationId]);
 
   const checkPermission = (permissionSlug: string): boolean => {
@@ -72,10 +81,6 @@ export function usePermissions({
 
   const canCreate = (resource: string): boolean => {
     return checkPermission(`create:${resource}`);
-  };
-
-  const canRead = (resource: string): boolean => {
-    return checkPermission(`read:${resource}`);
   };
 
   const canUpdate = (resource: string): boolean => {
@@ -102,7 +107,6 @@ export function usePermissions({
     hasPermission: checkPermission,
     hasAnyPermission: checkAnyPermission,
     canCreate,
-    canRead,
     canUpdate,
     canDelete,
     canManage,

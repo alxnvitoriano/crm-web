@@ -30,7 +30,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ClientModal } from "@/components/client-modal";
-import { PermissionButton } from "@/components/rbac/permission-guard";
 import {
   Search,
   Plus,
@@ -43,6 +42,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
+import { authClient } from "@/lib/auth-client";
+import { useOrganizationContext } from "@/lib/use-organization-context";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -68,12 +69,14 @@ const statusColors = {
   cliente: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
 };
 
-// TODO: Implementar contexto de autenticação para obter userId e organizationId
-// Por enquanto, vamos usar valores mockados, mas em produção isso viria do contexto
-const CURRENT_USER_ID = "user-123"; // Substituir pelo ID do usuário logado
-const CURRENT_ORGANIZATION_ID = "org-456"; // Substituir pelo ID da organização ativa
+// IDs reais via sessão e contexto de organização
 
 export default function ClientsPage() {
+  const session = authClient.useSession();
+  const { currentOrganization } = useOrganizationContext();
+  const organizationId =
+    currentOrganization?.id || (session.data as any)?.session?.activeOrganizationId || "";
+  const hasValidIds = Boolean(session.data?.user?.id) && Boolean(organizationId);
   const [clients, setClients] = useState<Client[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -85,25 +88,18 @@ export default function ClientsPage() {
   // Hook de permissões
   const {
     canCreate,
-    canRead,
     canUpdate,
     canDelete,
     loading: permissionsLoading,
   } = usePermissions({
-    userId: CURRENT_USER_ID,
-    organizationId: CURRENT_ORGANIZATION_ID,
+    userId: session.data?.user?.id || "",
+    organizationId,
   });
 
   // Carregar clientes
   useEffect(() => {
     const loadClients = async () => {
       if (permissionsLoading) return;
-
-      if (!canRead("client")) {
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
         setError(null);
@@ -117,7 +113,7 @@ export default function ClientsPage() {
       }
     };
     loadClients();
-  }, [canRead, permissionsLoading]);
+  }, [permissionsLoading]);
 
   const filteredClients = clients.filter((client) => {
     const matchesSearch =
@@ -177,7 +173,7 @@ export default function ClientsPage() {
           id: `client-${Date.now()}`, // Temporary ID
           createdAt: new Date(),
           updatedAt: new Date(),
-          companyId: CURRENT_ORGANIZATION_ID,
+          companyId: currentOrganization?.id || "",
         };
         setClients([...clients, newClient]);
       }
@@ -188,18 +184,6 @@ export default function ClientsPage() {
     }
   };
 
-  // Se não tem permissão para ler clientes, mostrar mensagem
-  // if (!canRead("client")) {
-  //   return (
-  //    <div className="flex items-center justify-center min-h-96">
-  //       <div className="text-center">
-  //<h2 className="text-2xl font-bold mb-2">Acesso Negado</h2>
-  //         <p className="text-muted-foreground">Você não tem permissão para visualizar clientes.</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -208,19 +192,28 @@ export default function ClientsPage() {
           <h1 className="text-3xl font-bold text-foreground">Clientes</h1>
           <p className="text-muted-foreground">Gerencie todos os seus clientes e leads</p>
         </div>
-        <PermissionButton
-          userId={CURRENT_USER_ID}
-          organizationId={CURRENT_ORGANIZATION_ID}
-          permission="create:client"
-          onClick={handleAddClient}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Adicionar Cliente
-        </PermissionButton>
+        {!hasValidIds ? (
+          <Button variant="outline" disabled className="opacity-50">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Selecione uma organização
+          </Button>
+        ) : permissionsLoading ? (
+          <Button variant="outline" disabled className="opacity-50">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Verificando permissões...
+          </Button>
+        ) : canCreate("client") ? (
+          <Button
+            variant="outline"
+            onClick={handleAddClient}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Adicionar Cliente
+          </Button>
+        ) : null}
       </div>
 
-      {/* TODO: Implementar filtros e busca */}
       {/* Filters and Search */}
       <Card>
         <CardHeader>

@@ -199,7 +199,7 @@ npm run db:seed
 import { usePermissions } from "@/hooks/use-permissions";
 
 function MyComponent() {
-  const { permissions, loading, canCreate, canRead, canUpdate, canDelete } = usePermissions({
+  const { permissions, loading, canCreate, canUpdate, canDelete } = usePermissions({
     userId: "user-123",
     organizationId: "org-456",
   });
@@ -208,8 +208,8 @@ function MyComponent() {
 
   return (
     <div>
-      {canCreate("client") && <button>Criar Cliente</button>}
-      {canRead("reports") && <button>Ver Relatórios</button>}
+      <button>Criar Cliente</button>
+      <button>Ver Relatórios</button>
     </div>
   );
 }
@@ -222,17 +222,11 @@ import { useSalesStagePermissions } from "@/hooks/use-sales-stage-permissions";
 import { SALES_STAGES } from "@/lib/rbac/sales-process-permissions";
 
 function SalesProcessComponent() {
-  const {
-    canCreateStage,
-    canReadStage,
-    canUpdateStage,
-    canDeleteStage,
-    getAccessibleStages,
-    loading,
-  } = useSalesStagePermissions({
-    userId: "user-123",
-    organizationId: "org-456",
-  });
+  const { canCreateStage, canUpdateStage, canDeleteStage, getAccessibleStages, loading } =
+    useSalesStagePermissions({
+      userId: "user-123",
+      organizationId: "org-456",
+    });
 
   if (loading) return <div>Carregando...</div>;
 
@@ -246,11 +240,6 @@ function SalesProcessComponent() {
           {canCreateStage(stage) && <button>Criar {stage}</button>}
           {canUpdateStage(stage) && <button>Editar {stage}</button>}
         </div>
-      ))}
-
-      <h2>Etapas Apenas Visualização</h2>
-      {viewOnly.map((stage) => (
-        <div key={stage}>{canReadStage(stage) && <span>Visualizar {stage}</span>}</div>
       ))}
     </div>
   );
@@ -397,22 +386,11 @@ function ClientsPage() {
 ### 2. Menu de Navegação
 
 ```tsx
-function NavigationMenu() {
-  const { canRead } = usePermissions({
-    userId: "user-123",
-    organizationId: "org-456",
-  });
-
-  return (
-    <nav>
-      <Link href="/clients">Clientes</Link>
-
-      {canRead("reports") && <Link href="/reports">Relatórios</Link>}
-
-      {canRead("user") && <Link href="/users">Usuários</Link>}
-    </nav>
-  );
-}
+return (
+  <nav>
+    <Link href="/clients">Clientes</Link>
+  </nav>
+);
 ```
 
 ### 3. Formulário de Cliente

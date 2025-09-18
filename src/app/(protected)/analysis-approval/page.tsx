@@ -26,70 +26,8 @@ interface CustomerDocument {
   notes?: string;
 }
 
-const mockDocuments: CustomerDocument[] = [
-  {
-    id: "1",
-    customerId: "1",
-    customerName: "João Silva",
-    customerCpf: "123.456.789-00",
-    documents: {
-      cpfFront: "/cpf-frente.jpg",
-      cpfBack: "/cpf-verso.jpg",
-      rgFront: "/rg-frente.jpg",
-      rgBack: "/rg-verso.jpg",
-    },
-    status: "approved",
-    submittedAt: "2024-01-20",
-    reviewedAt: "2024-01-21",
-    reviewedBy: "Ana Reviewer",
-  },
-  {
-    id: "2",
-    customerId: "2",
-    customerName: "Maria Santos",
-    customerCpf: "987.654.321-00",
-    documents: {
-      cpfFront: "/cpf-frente.jpg",
-      cpfBack: "/cpf-verso.jpg",
-    },
-    status: "incomplete",
-    submittedAt: "2024-01-22",
-    notes: "Faltam documentos do RG",
-  },
-  {
-    id: "3",
-    customerId: "3",
-    customerName: "Carlos Oliveira",
-    customerCpf: "456.789.123-00",
-    documents: {
-      cpfFront: "/cpf-frente.jpg",
-      cpfBack: "/cpf-verso.jpg",
-      rgFront: "/rg-frente.jpg",
-      rgBack: "/rg-verso.jpg",
-    },
-    status: "pending",
-    submittedAt: "2024-01-23",
-  },
-  {
-    id: "4",
-    customerId: "4",
-    customerName: "Ana Costa",
-    customerCpf: "321.654.987-00",
-    documents: {
-      cpfFront: "/cpf-frente.jpg",
-      cpfBack: "/cpf-verso.jpg",
-      rgFront: "/rg-frente.jpg",
-    },
-    status: "rejected",
-    submittedAt: "2024-01-19",
-    reviewedAt: "2024-01-20",
-    reviewedBy: "Carlos Reviewer",
-    notes: "Documento RG ilegível, solicitar nova foto",
-  },
-];
-
 export default function AnalysisApprovalPage() {
-  const [documents, setDocuments] = useState<CustomerDocument[]>(mockDocuments);
+  const [documents, setDocuments] = useState<CustomerDocument[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<CustomerDocument | null>(null);
@@ -112,7 +50,7 @@ export default function AnalysisApprovalPage() {
 
   const handleSaveDocument = (documentData: any) => {
     if (selectedDocument) {
-      // Update existing document
+      // Atualiza documento existente
       setDocuments(
         documents.map((doc) =>
           doc.id === selectedDocument.id
@@ -121,7 +59,7 @@ export default function AnalysisApprovalPage() {
         )
       );
     } else {
-      // Add new document
+      // Adiciona novo documento
       const newDocument: CustomerDocument = {
         id: Date.now().toString(),
         customerId: Date.now().toString(),
@@ -256,89 +194,97 @@ export default function AnalysisApprovalPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredDocuments.map((document) => {
-                  const statusConfig = getStatusBadge(document.status);
-                  const StatusIcon = statusConfig.icon;
-                  return (
-                    <tr key={document.id} className="border-b hover:bg-muted/50">
-                      <td className="p-4">
-                        <div className="font-medium">{document.customerName}</div>
-                      </td>
-                      <td className="p-4 font-mono text-sm">{document.customerCpf}</td>
-                      <td className="p-4">
-                        <div className="text-sm">
-                          {getDocumentCount(document.documents)}/4 documentos
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {document.documents.cpfFront && "CPF "}
-                          {document.documents.rgFront && "RG"}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant={statusConfig.variant} className="gap-1">
-                          <StatusIcon className="h-3 w-3" />
-                          {statusConfig.label}
-                        </Badge>
-                      </td>
-                      <td className="p-4 text-sm">
-                        {new Date(document.submittedAt).toLocaleDateString("pt-BR")}
-                      </td>
-                      <td className="p-4 text-sm">
-                        {document.reviewedBy ? (
-                          <div>
-                            <div>{document.reviewedBy}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {document.reviewedAt &&
-                                new Date(document.reviewedAt).toLocaleDateString("pt-BR")}
-                            </div>
+                {filteredDocuments.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center p-6 text-muted-foreground">
+                      Nenhuma ficha encontrada.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredDocuments.map((document) => {
+                    const statusConfig = getStatusBadge(document.status);
+                    const StatusIcon = statusConfig.icon;
+                    return (
+                      <tr key={document.id} className="border-b hover:bg-muted/50">
+                        <td className="p-4">
+                          <div className="font-medium">{document.customerName}</div>
+                        </td>
+                        <td className="p-4 font-mono text-sm">{document.customerCpf}</td>
+                        <td className="p-4">
+                          <div className="text-sm">
+                            {getDocumentCount(document.documents)}/4 documentos
                           </div>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewDocument(document)}
-                            title="Ver documentos"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {document.status === "pending" && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleUpdateStatus(document.id, "approved")}
-                                title="Aprovar"
-                                className="text-green-600 hover:text-green-700"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  handleUpdateStatus(
-                                    document.id,
-                                    "rejected",
-                                    "Documentos rejeitados"
-                                  )
-                                }
-                                title="Rejeitar"
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                            </>
+                          <div className="text-xs text-muted-foreground">
+                            {document.documents.cpfFront && "CPF "}
+                            {document.documents.rgFront && "RG"}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <Badge variant={statusConfig.variant} className="gap-1">
+                            <StatusIcon className="h-3 w-3" />
+                            {statusConfig.label}
+                          </Badge>
+                        </td>
+                        <td className="p-4 text-sm">
+                          {new Date(document.submittedAt).toLocaleDateString("pt-BR")}
+                        </td>
+                        <td className="p-4 text-sm">
+                          {document.reviewedBy ? (
+                            <div>
+                              <div>{document.reviewedBy}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {document.reviewedAt &&
+                                  new Date(document.reviewedAt).toLocaleDateString("pt-BR")}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewDocument(document)}
+                              title="Ver documentos"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {document.status === "pending" && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleUpdateStatus(document.id, "approved")}
+                                  title="Aprovar"
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  <CheckCircle className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleUpdateStatus(
+                                      document.id,
+                                      "rejected",
+                                      "Documentos rejeitados"
+                                    )
+                                  }
+                                  title="Rejeitar"
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>

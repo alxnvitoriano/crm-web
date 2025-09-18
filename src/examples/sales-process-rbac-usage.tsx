@@ -17,17 +17,11 @@ export function SalesProcessRBACExample() {
   const [userId] = useState("user-123"); // Em produção, viria do contexto de autenticação
   const [organizationId] = useState("org-456"); // Em produção, viria do contexto de organização
 
-  const {
-    canCreateStage,
-    canReadStage,
-    canUpdateStage,
-    canDeleteStage,
-    getAccessibleStages,
-    loading,
-  } = useSalesStagePermissions({
-    userId,
-    organizationId,
-  });
+  const { canCreateStage, canUpdateStage, canDeleteStage, getAccessibleStages, loading } =
+    useSalesStagePermissions({
+      userId,
+      organizationId,
+    });
 
   if (loading) {
     return <div className="p-6">Carregando permissões...</div>;
@@ -210,13 +204,6 @@ export function SalesProcessRBACExample() {
               <h4 className="font-semibold mb-2">Pode editar contratos (Etapa 6)?</h4>
               <Badge variant={canUpdateStage(SALES_STAGES.STAGE_6) ? "default" : "secondary"}>
                 {canUpdateStage(SALES_STAGES.STAGE_6) ? "Sim" : "Não"}
-              </Badge>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-2">Pode visualizar pagamentos (Etapa 7)?</h4>
-              <Badge variant={canReadStage(SALES_STAGES.STAGE_7) ? "default" : "secondary"}>
-                {canReadStage(SALES_STAGES.STAGE_7) ? "Sim" : "Não"}
               </Badge>
             </div>
 

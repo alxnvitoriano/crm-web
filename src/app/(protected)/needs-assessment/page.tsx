@@ -29,71 +29,8 @@ interface NeedsAssessment {
   createdAt: string;
 }
 
-const mockAssessments: NeedsAssessment[] = [
-  {
-    id: "1",
-    client: "João Silva",
-    cpf: "123.456.789-00",
-    birthDate: "1985-03-15",
-    asset: "Imóvel",
-    assetLocation: "São Paulo - SP",
-    searchTime: 6,
-    assetValue: 350000,
-    desiredInstallment: 2500,
-    downPayment: "FGTS + Espécie",
-    maritalStatus: "Casado",
-    profession: "Engenheiro",
-    income: 8000,
-    creditCheck: "Limpo",
-    previousFinancing: false,
-    purchaseReason: "Primeira casa própria para a família",
-    status: "approved",
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    client: "Maria Santos",
-    cpf: "987.654.321-00",
-    birthDate: "1990-07-22",
-    asset: "Veículo",
-    assetLocation: "Rio de Janeiro - RJ",
-    searchTime: 3,
-    assetValue: 45000,
-    desiredInstallment: 800,
-    downPayment: "Espécie",
-    maritalStatus: "Solteira",
-    profession: "Advogada",
-    income: 5500,
-    creditCheck: "Pendências menores",
-    previousFinancing: true,
-    purchaseReason: "Necessidade de locomoção para trabalho",
-    status: "pending",
-    createdAt: "2024-01-20",
-  },
-  {
-    id: "3",
-    client: "Carlos Oliveira",
-    cpf: "456.789.123-00",
-    birthDate: "1978-11-08",
-    asset: "Imóvel",
-    assetLocation: "Belo Horizonte - MG",
-    searchTime: 12,
-    assetValue: 280000,
-    desiredInstallment: 1800,
-    downPayment: "FGTS",
-    maritalStatus: "Divorciado",
-    profession: "Contador",
-    income: 6200,
-    creditCheck: "Limpo",
-    previousFinancing: true,
-    purchaseReason: "Investimento imobiliário",
-    status: "approved",
-    createdAt: "2024-01-18",
-  },
-];
-
 export default function NeedsAssessmentPage() {
-  const [assessments, setAssessments] = useState<NeedsAssessment[]>(mockAssessments);
+  const [assessments, setAssessments] = useState<NeedsAssessment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState<NeedsAssessment | null>(null);
@@ -182,7 +119,7 @@ export default function NeedsAssessmentPage() {
             <CardTitle className="text-sm font-medium">Aprovados</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold">
               {assessments.filter((a) => a.status === "approved").length}
             </div>
           </CardContent>
@@ -192,7 +129,7 @@ export default function NeedsAssessmentPage() {
             <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-2xl font-bold">
               {assessments.filter((a) => a.status === "pending").length}
             </div>
           </CardContent>
@@ -203,13 +140,13 @@ export default function NeedsAssessmentPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              R${" "}
-              {(
-                assessments.reduce((acc, a) => acc + a.assetValue, 0) /
-                assessments.length /
-                1000
-              ).toFixed(0)}
-              k
+              {assessments.length > 0
+                ? `R$ ${(
+                    assessments.reduce((acc, a) => acc + a.assetValue, 0) /
+                    assessments.length /
+                    1000
+                  ).toFixed(0)}k`
+                : "R$ 0,00"}
             </div>
           </CardContent>
         </Card>
@@ -246,67 +183,75 @@ export default function NeedsAssessmentPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredAssessments.map((assessment) => {
-                  const statusConfig = getStatusBadge(assessment.status);
-                  return (
-                    <tr key={assessment.id} className="border-b hover:bg-muted/50">
-                      <td className="p-4">
-                        <div>
-                          <div className="font-medium">{assessment.client}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {assessment.profession}
+                {filteredAssessments.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="text-center p-6 text-muted-foreground">
+                      Nenhum levantamento encontrado.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredAssessments.map((assessment) => {
+                    const statusConfig = getStatusBadge(assessment.status);
+                    return (
+                      <tr key={assessment.id} className="border-b hover:bg-muted/50">
+                        <td className="p-4">
+                          <div>
+                            <div className="font-medium">{assessment.client}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {assessment.profession}
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="p-4 font-mono text-sm">{assessment.cpf}</td>
-                      <td className="p-4">
-                        <div>
-                          <div className="font-medium">{assessment.asset}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {assessment.assetLocation}
+                        </td>
+                        <td className="p-4 font-mono text-sm">{assessment.cpf}</td>
+                        <td className="p-4">
+                          <div>
+                            <div className="font-medium">{assessment.asset}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {assessment.assetLocation}
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="p-4 font-medium">
-                        R$ {assessment.assetValue.toLocaleString("pt-BR")}
-                      </td>
-                      <td className="p-4 font-medium">
-                        R$ {assessment.desiredInstallment.toLocaleString("pt-BR")}
-                      </td>
-                      <td className="p-4">
-                        <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
-                      </td>
-                      <td className="p-4 text-sm">
-                        {new Date(assessment.createdAt).toLocaleDateString("pt-BR")}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditModal(assessment)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditModal(assessment)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteAssessment(assessment.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                        <td className="p-4 font-medium">
+                          R$ {assessment.assetValue.toLocaleString("pt-BR")}
+                        </td>
+                        <td className="p-4 font-medium">
+                          R$ {assessment.desiredInstallment.toLocaleString("pt-BR")}
+                        </td>
+                        <td className="p-4">
+                          <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                        </td>
+                        <td className="p-4 text-sm">
+                          {new Date(assessment.createdAt).toLocaleDateString("pt-BR")}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditModal(assessment)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditModal(assessment)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteAssessment(assessment.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
