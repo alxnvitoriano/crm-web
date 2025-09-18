@@ -3,6 +3,8 @@ import { db } from "@/db";
 import { member, rolesTable, rolesToPermissionsTable, permissionsTable } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
