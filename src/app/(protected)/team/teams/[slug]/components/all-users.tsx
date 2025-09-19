@@ -184,7 +184,7 @@ export default function AllUsers({ users, organizationId }: AllUsersProps) {
                   )}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+              <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle>Convidar Usuário</DialogTitle>
                   <DialogDescription>
@@ -214,14 +214,14 @@ export default function AllUsers({ users, organizationId }: AllUsersProps) {
                               roleIconMap[role.icon as keyof typeof roleIconMap] || Users;
                             return (
                               <SelectItem key={role.id} value={role.id}>
-                                <div className="flex items-center gap-2">
-                                  <div className={`p-1 rounded-full ${role.color}`}>
+                                <div className="flex items-center gap-2 w-full">
+                                  <div className={`p-1 rounded-full ${role.color} flex-shrink-0`}>
                                     <IconComponent className="size-3 text-white" />
                                   </div>
-                                  <div>
-                                    <div className="font-medium">{role.name}</div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium truncate">{role.name}</div>
                                     {role.description && (
-                                      <div className="text-xs text-muted-foreground">
+                                      <div className="text-xs text-muted-foreground truncate">
                                         {role.description}
                                       </div>
                                     )}

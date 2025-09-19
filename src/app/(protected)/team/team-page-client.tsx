@@ -24,6 +24,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Users, UserCheck, Crown, TrendingUp, Shield, Headphones } from "lucide-react";
 import Link from "next/link";
+import { EditMemberModal } from "./components/edit-member-modal";
 
 type OrganizationType = Awaited<ReturnType<typeof getOrganizations>>;
 
@@ -66,6 +67,8 @@ export function TeamPageClient({ organizations }: TeamPageClientProps) {
   const [members, setMembers] = useState<TeamMember[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   // Função para buscar membros da organização atual
   async function fetchTeamMembers(organizationId: string) {
@@ -91,6 +94,17 @@ export function TeamPageClient({ organizations }: TeamPageClientProps) {
       fetchTeamMembers(organizations[0].id);
     }
   }, [organizations]);
+
+  const handleEditMember = (member: TeamMember) => {
+    setSelectedMember(member);
+    setEditModalOpen(true);
+  };
+
+  const handleMemberUpdated = () => {
+    if (organizations.length > 0) {
+      fetchTeamMembers(organizations[0].id);
+    }
+  };
 
   return (
     <div className="p-6">
@@ -187,8 +201,13 @@ export function TeamPageClient({ organizations }: TeamPageClientProps) {
                           {new Date(member.createdAt).toLocaleDateString("pt-BR")}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="outline" size="sm"></Button>
-                          Editar
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditMember(member)}
+                          >
+                            Editar
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -199,6 +218,13 @@ export function TeamPageClient({ organizations }: TeamPageClientProps) {
           </Card>
         </div>
       </div>
+      <EditMemberModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        member={selectedMember}
+        organizationId={organizations.length > 0 ? organizations[0].id : ""}
+        onMemberUpdated={handleMemberUpdated}
+      />
     </div>
   );
 }

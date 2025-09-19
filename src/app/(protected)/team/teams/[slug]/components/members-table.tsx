@@ -16,8 +16,17 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+interface MemberWithRole extends Member {
+  role?: {
+    id: string;
+    name: string;
+    description?: string;
+    isSystemRole: boolean;
+  };
+}
+
 interface MembersTableProps {
-  members: Member[];
+  members: MemberWithRole[];
   organizationId: string;
   onMemberRemoved?: () => void;
 }
@@ -67,7 +76,7 @@ export default function MembersTable({
           <TableRow key={member.id}>
             <TableCell className="font-medium">{member.user.name}</TableCell>
             <TableCell>{member.user.email}</TableCell>
-            <TableCell>{member.roleId || "N/A"}</TableCell>
+            <TableCell>{member.role?.name || member.roleId || "N/A"}</TableCell>
             <TableCell className="text-center">
               <Button
                 variant="destructive"
