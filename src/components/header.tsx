@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,6 +20,7 @@ import { useTheme } from "next-themes";
 import { OrganizationSwitcher } from "@/app/(protected)/team/components/organization-switcher";
 import { authClient } from "@/lib/auth-client";
 import { Organization } from "@/db/schema";
+import { useSession } from "@/hooks/use-session";
 
 const notifications = [
   {
@@ -50,6 +52,9 @@ export default function Header() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loadingOrganizations, setLoadingOrganizations] = useState(true);
   const unreadCount = notifications.filter((n) => n.unread).length;
+  const router = useRouter();
+
+  const { user, isLoading } = useSession();
 
   // Buscar todas as organizações do usuário
   useEffect(() => {
@@ -87,6 +92,14 @@ export default function Header() {
     localStorage.removeItem("isLoggedIn");
     window.location.href = "/";
   };
+
+  if (isLoading) {
+    return (
+      <header className="flex items-center justify-between px-6 py-4 bg-card border-b border-border">
+        <div>Carregando...</div>
+      </header>
+    );
+  }
 
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-card border-b border-border">
@@ -170,7 +183,7 @@ export default function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder.svg" alt="Avatar" />
+                <AvatarImage src={user?.image || "/placeholder.svg"} alt="Avatar" />
                 <AvatarFallback>
                   <User className="h-4 w-4" />
                 </AvatarFallback>
@@ -180,16 +193,14 @@ export default function Header() {
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">João Silva</p>
-                <p className="text-xs leading-none text-muted-foreground">joao@empresa.com</p>
+                <p className="text-sm font-medium leading-none">{user?.name || "Usuário"}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user?.email || "email@exemplo.com"}
+                </p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              <span>Perfil</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/settings")}>
               <Settings className="mr-2 h-4 w-4" />
               <span>Configurações</span>
             </DropdownMenuItem>

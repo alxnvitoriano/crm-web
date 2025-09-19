@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/select";
 
 interface Deal {
-  id: number;
+  id: string;
+  organizationId: string;
   title: string;
   client: string;
   clientAvatar?: string;
@@ -33,13 +34,14 @@ interface Deal {
   priority: "baixa" | "media" | "alta";
   dueDate: string;
   createdAt: string;
+  updatedAt: string;
   description?: string;
 }
 
 interface DealModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (deal: Omit<Deal, "id" | "createdAt">) => void;
+  onSave: (deal: Omit<Deal, "id" | "createdAt" | "updatedAt" | "organizationId">) => void;
   deal?: Deal | null;
 }
 

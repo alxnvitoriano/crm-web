@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, pgTable, text, timestamp, uuid, unique } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp, uuid, unique, integer } from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users_table", {
   id: text("id").primaryKey(),
@@ -203,6 +203,7 @@ export const organization = pgTable("organization", {
 
 export const organizationRelations = relations(organization, ({ many }) => ({
   members: many(member),
+  deals: many(dealsTable),
 }));
 
 export type Organization = typeof organization.$inferSelect;
@@ -362,6 +363,33 @@ export const rolesToPermissionsTableRelations = relations(rolesToPermissionsTabl
   }),
 }));
 
+export const dealsTable = pgTable("deals", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  client: text("client").notNull(),
+  clientAvatar: text("client_avatar"),
+  value: integer("value").notNull(),
+  stage: text("stage").notNull(), // "lead", "negociacao", "fechado"
+  priority: text("priority").notNull(), // "baixa", "media", "alta"
+  dueDate: timestamp("due_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+  description: text("description"),
+});
+
+export const dealsTableRelations = relations(dealsTable, ({ one }) => ({
+  organization: one(organization, {
+    fields: [dealsTable.organizationId],
+    references: [organization.id],
+  }),
+}));
+
 export const schema = {
   usersTable,
   sessionsTable,
@@ -380,4 +408,5 @@ export const schema = {
   rolesTableRelations,
   permissionsTableRelations,
   rolesToPermissionsTableRelations,
+  dealsTable,
 };

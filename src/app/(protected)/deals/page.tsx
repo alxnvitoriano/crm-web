@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface Deal {
-  id: number;
+  id: string;
+  organizationId: string;
   title: string;
   client: string;
   clientAvatar?: string;
@@ -28,6 +29,7 @@ interface Deal {
   priority: "baixa" | "media" | "alta";
   dueDate: string;
   createdAt: string;
+  updatedAt: string;
   description?: string;
 }
 
@@ -63,6 +65,26 @@ export default function DealsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load deals from API on component mount
+  useEffect(() => {
+    const loadDeals = async () => {
+      try {
+        const response = await fetch("/api/deals");
+        if (response.ok) {
+          const data = await response.json();
+          setDeals(data);
+        }
+      } catch (error) {
+        console.error("Error loading deals:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDeals();
+  }, []);
 
   const handleAddDeal = () => {
     setEditingDeal(null);
@@ -74,22 +96,58 @@ export default function DealsPage() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteDeal = (dealId: number) => {
-    setDeals(deals.filter((deal) => deal.id !== dealId));
+  const handleDeleteDeal = async (dealId: string) => {
+    try {
+      const response = await fetch(`/api/deals/${dealId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setDeals(deals.filter((deal) => deal.id !== dealId));
+      }
+    } catch (error) {
+      console.error("Error deleting deal:", error);
+    }
   };
 
-  const handleSaveDeal = (dealData: Omit<Deal, "id" | "createdAt">) => {
-    if (editingDeal) {
-      setDeals(deals.map((deal) => (deal.id === editingDeal.id ? { ...deal, ...dealData } : deal)));
-    } else {
-      const newDeal: Deal = {
-        ...dealData,
-        id: Math.max(...deals.map((d) => d.id)) + 1,
-        createdAt: new Date().toISOString().split("T")[0],
-      };
-      setDeals([...deals, newDeal]);
+  const handleSaveDeal = async (
+    dealData: Omit<Deal, "id" | "createdAt" | "updatedAt" | "organizationId">
+  ) => {
+    try {
+      if (editingDeal) {
+        // Update existing deal
+        const response = await fetch(`/api/deals/${editingDeal.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dealData),
+        });
+
+        if (response.ok) {
+          const updatedDeal = await response.json();
+          setDeals(deals.map((deal) => (deal.id === editingDeal.id ? updatedDeal : deal)));
+        }
+      } else {
+        // Create new deal
+        const response = await fetch("/api/deals", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dealData),
+        });
+
+        if (response.ok) {
+          const newDeal = await response.json();
+          setDeals([...deals, newDeal]);
+        }
+      }
+    } catch (error) {
+      console.error("Error saving deal:", error);
+    } finally {
+      setIsModalOpen(false);
     }
-    setIsModalOpen(false);
   };
 
   const handleDragStart = (deal: Deal) => {

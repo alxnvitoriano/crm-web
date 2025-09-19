@@ -15,6 +15,13 @@
       "when": 1758081219841,
       "tag": "0001_tan_krista_starr",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1758295559843,
+      "tag": "0002_confused_komodo",
+      "breakpoints": true
     }
   ]
 }

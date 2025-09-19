@@ -104,7 +104,13 @@ export default function ClientsPage() {
         setLoading(true);
         setError(null);
 
-        setClients([]);
+        // Buscar clientes da API
+        const response = await fetch(`/api/clients?organizationId=${organizationId}`);
+        if (!response.ok) {
+          throw new Error("Erro ao buscar clientes");
+        }
+        const data = await response.json();
+        setClients(data);
       } catch (err) {
         console.error("Erro ao carregar clientes:", err);
         setError(err instanceof Error ? err.message : "Erro desconhecido.");
@@ -144,11 +150,19 @@ export default function ClientsPage() {
     if (!confirm("Tem certeza que deseja excluir este cliente?")) return;
 
     try {
+      const response = await fetch(`/api/clients/${clientId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao excluir cliente");
+      }
+
       // Remove do estado local
       setClients(clients.filter((client) => client.id !== clientId));
     } catch (err) {
       console.error("Erro ao excluir cliente:", err);
-      alert("Erro ao excluir cliente");
+      alert(err instanceof Error ? err.message : "Erro ao excluir cliente");
     }
   };
 
@@ -160,27 +174,49 @@ export default function ClientsPage() {
 
     try {
       if (editingClient) {
+        // Atualizar cliente existente
+        const response = await fetch(`/api/clients/${editingClient.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(clientData),
+        });
+
+        if (!response.ok) {
+          throw new Error("Erro ao atualizar cliente");
+        }
+
+        const data = await response.json();
         setClients(
-          clients.map((client) =>
-            client.id === editingClient.id
-              ? { ...client, ...clientData, updatedAt: new Date() }
-              : client
-          )
+          clients.map((client) => (client.id === editingClient.id ? data.client : client))
         );
       } else {
-        const newClient: Client = {
-          ...clientData,
-          id: `client-${Date.now()}`, // Temporary ID
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          companyId: currentOrganization?.id || "",
-        };
-        setClients([...clients, newClient]);
+        // Criar novo cliente
+        const response = await fetch("/api/clients", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...clientData,
+            organizationId: organizationId,
+            salespersonId: session.data?.user?.id, // Usar o ID do usuário logado como salesperson por enquanto
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Erro ao criar cliente");
+        }
+
+        const data = await response.json();
+        setClients([...clients, data.client]);
       }
       setIsModalOpen(false);
     } catch (err) {
       console.error("Erro ao salvar cliente:", err);
-      alert("Erro ao salvar cliente");
+      alert(err instanceof Error ? err.message : "Erro ao salvar cliente");
     }
   };
 
@@ -316,7 +352,10 @@ export default function ClientsPage() {
                           <div>
                             <div className="font-medium">{client.name}</div>
                             <div className="text-sm text-muted-foreground">
-                              Cliente desde {client.createdAt.toLocaleDateString("pt-BR")}
+                              Cliente desde{" "}
+                              {client.createdAt
+                                ? new Date(client.createdAt).toLocaleDateString("pt-BR")
+                                : "Data não disponível"}
                             </div>
                           </div>
                         </div>
@@ -341,7 +380,11 @@ export default function ClientsPage() {
                           {client.status.charAt(0).toUpperCase() + client.status.slice(1)}
                         </Badge>
                       </TableCell>
-                      <TableCell>{client.updatedAt.toLocaleDateString("pt-BR")}</TableCell>
+                      <TableCell>
+                        {client.updatedAt
+                          ? new Date(client.updatedAt).toLocaleDateString("pt-BR")
+                          : "Data não disponível"}
+                      </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -407,6 +450,9 @@ type ModalClient = {
 
 // Função para converter Client para o formato esperado pelo modal
 function convertClientForModal(client: Client): ModalClient {
+  const createdAt = client.createdAt ? new Date(client.createdAt) : new Date();
+  const updatedAt = client.updatedAt ? new Date(client.updatedAt) : new Date();
+
   return {
     id: client.id,
     name: client.name,
@@ -415,7 +461,7 @@ function convertClientForModal(client: Client): ModalClient {
     company: client.company,
     status: client.status,
     avatar: client.avatar,
-    createdAt: client.createdAt.toISOString().split("T")[0],
-    lastContact: client.updatedAt.toISOString().split("T")[0],
+    createdAt: createdAt.toISOString().split("T")[0],
+    lastContact: updatedAt.toISOString().split("T")[0],
   };
 }
