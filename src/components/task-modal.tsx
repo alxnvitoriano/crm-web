@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 
 interface Task {
-  id: number;
+  id: string;
   title: string;
   description?: string;
   dueDate: string;
@@ -32,16 +32,16 @@ interface Task {
   priority: "baixa" | "media" | "alta";
   status: "pendente" | "concluida" | "atrasada";
   assignedTo?: string;
-  assignedAvatar?: string;
   category: "reuniao" | "followup" | "proposta" | "ligacao" | "email" | "outros";
   createdAt: string;
+  updatedAt: string;
   completedAt?: string;
 }
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (task: Omit<Task, "id" | "createdAt" | "completedAt">) => void;
+  onSave: (task: Omit<Task, "id" | "createdAt" | "completedAt" | "updatedAt">) => void;
   task?: Task | null;
 }
 
@@ -55,6 +55,7 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
     status: "pendente" as const,
     assignedTo: "",
     category: "outros" as const,
+    updatedAt: new Date().toISOString(),
   });
 
   useEffect(() => {
@@ -68,6 +69,7 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
         status: task.status as any,
         assignedTo: task.assignedTo || "",
         category: task.category as any,
+        updatedAt: task.updatedAt || new Date().toISOString(),
       });
     } else {
       // Set default date to today and time to current hour + 1
@@ -83,6 +85,7 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
         status: "pendente",
         assignedTo: "",
         category: "outros",
+        updatedAt: new Date().toISOString(),
       });
     }
   }, [task, isOpen]);

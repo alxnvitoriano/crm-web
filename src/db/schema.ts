@@ -390,6 +390,60 @@ export const dealsTableRelations = relations(dealsTable, ({ one }) => ({
   }),
 }));
 
+export const tasksTable = pgTable("tasks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  dueDate: text("due_date").notNull(), // YYYY-MM-DD
+  dueTime: text("due_time").notNull(), // HH:MM
+  priority: text("priority").notNull(), // "baixa", "media", "alta"
+  status: text("status").notNull().default("pendente"), // "pendente", "concluida", "atrasada"
+  assignedTo: text("assigned_to"), // user id
+  category: text("category").notNull(), // "reuniao", "followup", "proposta", "ligacao", "email", "outros"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const tasksTableRelations = relations(tasksTable, ({ one }) => ({
+  organization: one(organization, {
+    fields: [tasksTable.organizationId],
+    references: [organization.id],
+  }),
+}));
+
+export const notificationsTable = pgTable("notifications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  time: text("time").notNull(), // e.g., "5 min atrás"
+  unread: boolean("unread").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const notificationsTableRelations = relations(notificationsTable, ({ one }) => ({
+  organization: one(organization, {
+    fields: [notificationsTable.organizationId],
+    references: [organization.id],
+  }),
+  user: one(usersTable, {
+    fields: [notificationsTable.userId],
+    references: [usersTable.id],
+  }),
+}));
+
 export const schema = {
   usersTable,
   sessionsTable,
@@ -409,4 +463,6 @@ export const schema = {
   permissionsTableRelations,
   rolesToPermissionsTableRelations,
   dealsTable,
+  tasksTable,
+  notificationsTable,
 };

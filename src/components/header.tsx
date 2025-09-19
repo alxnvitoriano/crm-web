@@ -22,35 +22,21 @@ import { authClient } from "@/lib/auth-client";
 import { Organization } from "@/db/schema";
 import { useSession } from "@/hooks/use-session";
 
-const notifications = [
-  {
-    id: 1,
-    title: "Nova reunião agendada",
-    description: "Reunião com cliente às 14:00",
-    time: "5 min atrás",
-    unread: true,
-  },
-  {
-    id: 2,
-    title: "Proposta aprovada",
-    description: "Cliente ABC aprovou a proposta",
-    time: "1 hora atrás",
-    unread: true,
-  },
-  {
-    id: 3,
-    title: "Lembrete de follow-up",
-    description: "Entrar em contato com lead XYZ",
-    time: "2 horas atrás",
-    unread: false,
-  },
-];
+interface Notification {
+  id: string;
+  title: string;
+  description?: string;
+  time: string;
+  unread: boolean;
+}
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loadingOrganizations, setLoadingOrganizations] = useState(true);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(true);
   const unreadCount = notifications.filter((n) => n.unread).length;
   const router = useRouter();
 
@@ -86,6 +72,29 @@ export default function Header() {
     };
 
     fetchOrganizations();
+  }, []);
+
+  // Buscar notificações
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setLoadingNotifications(true);
+        const response = await fetch("/api/notifications");
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data);
+        } else {
+          setNotifications([]);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar notificações:", error);
+        setNotifications([]);
+      } finally {
+        setLoadingNotifications(false);
+      }
+    };
+
+    fetchNotifications();
   }, []);
 
   const handleLogout = () => {

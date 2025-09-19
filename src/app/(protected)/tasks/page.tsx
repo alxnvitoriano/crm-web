@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 interface Task {
-  id: number;
+  id: string;
   title: string;
   description?: string;
   dueDate: string;
@@ -35,78 +35,11 @@ interface Task {
   priority: "baixa" | "media" | "alta";
   status: "pendente" | "concluida" | "atrasada";
   assignedTo?: string;
-  assignedAvatar?: string;
   category: "reuniao" | "followup" | "proposta" | "ligacao" | "email" | "outros";
   createdAt: string;
+  updatedAt: string;
   completedAt?: string;
 }
-
-const mockTasks: Task[] = [
-  {
-    id: 1,
-    title: "Reunião com cliente Ana Silva",
-    description: "Apresentar proposta do sistema de gestão",
-    dueDate: "2024-01-25",
-    dueTime: "14:00",
-    priority: "alta",
-    status: "pendente",
-    assignedTo: "João Silva",
-    assignedAvatar: "/professional-user.png",
-    category: "reuniao",
-    createdAt: "2024-01-20",
-  },
-  {
-    id: 2,
-    title: "Follow-up com Carlos Santos",
-    description: "Verificar interesse na consultoria de marketing",
-    dueDate: "2024-01-25",
-    dueTime: "10:30",
-    priority: "media",
-    status: "pendente",
-    assignedTo: "Maria Costa",
-    assignedAvatar: "/professional-woman-diverse.png",
-    category: "followup",
-    createdAt: "2024-01-22",
-  },
-  {
-    id: 3,
-    title: "Enviar proposta para Maria Oliveira",
-    description: "Proposta de desenvolvimento de e-commerce",
-    dueDate: "2024-01-24",
-    dueTime: "16:00",
-    priority: "alta",
-    status: "atrasada",
-    assignedTo: "Pedro Santos",
-    assignedAvatar: "/professional-man.png",
-    category: "proposta",
-    createdAt: "2024-01-18",
-  },
-  {
-    id: 4,
-    title: "Ligação para João Costa",
-    description: "Discutir detalhes do projeto de automação",
-    dueDate: "2024-01-23",
-    dueTime: "09:00",
-    priority: "media",
-    status: "concluida",
-    assignedTo: "Ana Lima",
-    category: "ligacao",
-    createdAt: "2024-01-20",
-    completedAt: "2024-01-23",
-  },
-  {
-    id: 5,
-    title: "Preparar relatório mensal",
-    description: "Compilar dados de vendas do mês",
-    dueDate: "2024-01-26",
-    dueTime: "17:00",
-    priority: "baixa",
-    status: "pendente",
-    assignedTo: "Fernanda Silva",
-    category: "outros",
-    createdAt: "2024-01-21",
-  },
-];
 
 const priorityColors = {
   baixa: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
@@ -130,7 +63,8 @@ const categoryIcons = {
 };
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loadingTasks, setLoadingTasks] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [activeTab, setActiveTab] = useState("hoje");
@@ -147,7 +81,8 @@ export default function TasksPage() {
           if (task.status === "concluida") return task;
 
           const isOverdue =
-            task.dueDate < today || (task.dueDate === today && task.dueTime < currentTime);
+            task.dueDate < today ||
+            (task.dueDate === today && task.dueTime.localeCompare(currentTime) < 0);
 
           return {
             ...task,
@@ -163,6 +98,29 @@ export default function TasksPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Buscar tarefas da API
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setLoadingTasks(true);
+        const response = await fetch("/api/tasks");
+        if (response.ok) {
+          const data = await response.json();
+          setTasks(data);
+        } else {
+          setTasks([]);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar tarefas:", error);
+        setTasks([]);
+      } finally {
+        setLoadingTasks(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
   const handleAddTask = () => {
     setEditingTask(null);
     setIsModalOpen(true);
@@ -173,11 +131,11 @@ export default function TasksPage() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteTask = (taskId: number) => {
+  const handleDeleteTask = (taskId: string) => {
     setTasks(tasks.filter((task) => task.id !== taskId));
   };
 
-  const handleToggleComplete = (taskId: number) => {
+  const handleToggleComplete = (taskId: string) => {
     setTasks(
       tasks.map((task) =>
         task.id === taskId
@@ -192,16 +150,45 @@ export default function TasksPage() {
     );
   };
 
-  const handleSaveTask = (taskData: Omit<Task, "id" | "createdAt" | "completedAt">) => {
-    if (editingTask) {
-      setTasks(tasks.map((task) => (task.id === editingTask.id ? { ...task, ...taskData } : task)));
-    } else {
-      const newTask: Task = {
-        ...taskData,
-        id: Math.max(...tasks.map((t) => t.id)) + 1,
-        createdAt: new Date().toISOString().split("T")[0],
-      };
-      setTasks([...tasks, newTask]);
+  const handleSaveTask = async (
+    taskData: Omit<Task, "id" | "createdAt" | "completedAt" | "updatedAt">
+  ) => {
+    try {
+      if (editingTask) {
+        // Update existing task - for now, just update local state
+        setTasks(
+          tasks.map((task) => (task.id === editingTask.id ? { ...task, ...taskData } : task))
+        );
+      } else {
+        // Create new task
+        const response = await fetch("/api/tasks", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(taskData),
+        });
+
+        if (response.ok) {
+          const newTask = await response.json();
+          setTasks([...tasks, newTask]);
+
+          // Create notification
+          await fetch("/api/notifications", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              title: "Nova tarefa criada",
+              description: `Tarefa "${newTask.title}" foi adicionada`,
+              time: "agora",
+            }),
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao salvar tarefa:", error);
     }
     setIsModalOpen(false);
   };
@@ -375,10 +362,7 @@ export default function TasksPage() {
                                   {task.assignedTo && (
                                     <div className="flex items-center space-x-2">
                                       <Avatar className="h-6 w-6">
-                                        <AvatarImage
-                                          src={task.assignedAvatar || "/placeholder.svg"}
-                                          alt={task.assignedTo}
-                                        />
+                                        <AvatarImage src="/placeholder.svg" alt={task.assignedTo} />
                                         <AvatarFallback className="text-xs">
                                           {task.assignedTo
                                             .split(" ")
