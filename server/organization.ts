@@ -73,12 +73,12 @@ export async function getActiveOrganization(userId: string) {
 export async function getOrganizationBySlug(slug: string) {
   try {
     const organizationBySlug = await db.query.organization.findFirst({
-      // @ts-expect-error - Drizzle ORM version compatibility issue
       where: eqSafe(organization.slug, slug),
       with: {
         members: {
           with: {
             user: true,
+            role: true,
           },
         },
       },
